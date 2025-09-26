@@ -1,5 +1,5 @@
 @echo off
-git checkout main
+git checkout Jose
 git add .
-git commit -m "Inicializando React+Vite"
-git push origin main
+git commit -m "hlla"
+git push origin Jose
