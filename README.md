@@ -28,7 +28,7 @@ git push origin main
 
 3.revertir algun merge del _pricipal
 
-git checkout main
-git pull origin main   # traer lo último de GitHub
-git revert -m 1 <id-del-merge>
-git push origin main
+* git checkout main 
+* git pull origin main   # traer lo último de GitHub
+* git revert -m 1 <id-del-merge>
+* git push origin main
