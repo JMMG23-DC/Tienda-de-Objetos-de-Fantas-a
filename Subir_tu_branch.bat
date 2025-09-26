@@ -1,5 +1,5 @@
 @echo off
 git checkout main
-git add README.md
-git commit -m "Actualizando README.md "
+git add .
+git commit -m "Añadiendo txt"
 git push origin main
