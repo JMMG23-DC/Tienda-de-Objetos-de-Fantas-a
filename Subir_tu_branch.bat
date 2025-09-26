@@ -1,5 +1,5 @@
 @echo off
 git checkout main
-git add .
-git commit -m "Inicializando React+Vite"
+git add README.md
+git commit -m "Actualizando README.md "
 git push origin main
