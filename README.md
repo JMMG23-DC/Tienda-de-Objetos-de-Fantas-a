@@ -1,2 +1,2 @@
-# Tienda-de-Objetos-de-Fantas-a
-Integrantes : 
+# Tienda-de-Objetos-de-Fantasia
+
