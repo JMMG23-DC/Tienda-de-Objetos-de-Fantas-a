@@ -1,35 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+
+
+import { useState } from 'react';
+import './App.css';
+import SearchBar from './SearchBar.jsx';
+import FeaturedCategories from './FeaturedCategories.jsx';
+import BestSellers from './BestSellers.jsx';
+import NewCategories from './NewCategories.jsx';
+import NewProducts from './NewProducts.jsx';
+import Banner from './Banner.jsx';
+
+import Cart from './Cart.jsx';
+import Footer from './Footer.jsx';
+import SearchResults from './SearchResults.jsx';
+import ProductDetail from './ProductDetail.jsx';
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [search, setSearch] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="landing-page">
+      <header>
+        <SearchBar onSearch={setSearch} />
+      </header>
+      {selectedProduct ? (
+        <ProductDetail product={selectedProduct} onBack={() => setSelectedProduct(null)} />
+      ) : search ? (
+        <SearchResults search={search} onSelect={setSelectedProduct} />
+      ) : (
+        <>
+          <Banner />
+          <div id="categorias">
+            <FeaturedCategories />
+          </div>
+          <div id="mas-vendidos">
+            <BestSellers />
+          </div>
+          <section className="bottom-section" id="nuevos">
+            <NewCategories />
+            <NewProducts />
+          </section>
+        </>
+      )}
+      <div id="carrito">
+        <Cart />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <Footer />
+    </div>
+  );
 }
 
 export default App
