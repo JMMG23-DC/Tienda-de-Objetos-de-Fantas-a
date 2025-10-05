@@ -1,7 +1,9 @@
+
 import { useCart } from "./CartContext";
 import { useState } from "react";
+import Checkout from "./Checkout.jsx";
 
-export default function Cart() {
+export default function Cart({ loggedIn }) {
   const {
     cart,
     saved,
@@ -12,16 +14,49 @@ export default function Cart() {
     removeSaved,
     moveToCart
   } = useCart();
-  const [showOrder, setShowOrder] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [orderComplete, setOrderComplete] = useState(false);
+  const [orderSummary, setOrderSummary] = useState({ items: [], total: 0 });
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  if (showOrder) {
+  if (showCheckout) {
+    if (!loggedIn) {
+      return (
+        <div style={{ padding: "2rem" }}>
+          <h2>Debes iniciar sesión para completar la orden.</h2>
+        </div>
+      );
+    }
     return (
-      <div className="order-page">
-        <h2>Completar orden</h2>
-        <p>¡Gracias por tu compra! (Simulación)</p>
-        <button onClick={() => setShowOrder(false)}>Volver al carrito</button>
+      <Checkout
+        cart={cart}
+        total={total}
+        onComplete={() => {
+          setOrderSummary({ items: [...cart], total });
+          setShowCheckout(false);
+          setOrderComplete(true);
+          clearCart();
+        }}
+        onCancel={() => setShowCheckout(false)}
+      />
+    );
+  }
+  if (orderComplete) {
+    return (
+      <div className="order-page" style={{ padding: "2rem", maxWidth: "500px", margin: "auto" }}>
+        <h2>¡Pedido completado!</h2>
+        <p>Gracias por tu compra. Tu pedido ha sido procesado correctamente.</p>
+        <div style={{ marginTop: "1rem" }}>
+          <h4>Resumen de la orden</h4>
+          <ul>
+            {orderSummary.items.map(item => (
+              <li key={item.id}>{item.name} x {item.quantity} = ${item.price * item.quantity}</li>
+            ))}
+          </ul>
+          <div><strong>Total pagado:</strong> ${orderSummary.total}</div>
+        </div>
+        <button onClick={() => setOrderComplete(false)} style={{ marginTop: "1rem" }}>Volver al carrito</button>
       </div>
     );
   }
@@ -53,8 +88,8 @@ export default function Cart() {
       <div style={{ marginTop: "1rem" }}>
         <strong>Total: ${total}</strong>
       </div>
-      <button onClick={clearCart} style={{ marginTop: "1rem" }}>Vaciar carrito</button>
-      <button onClick={() => setShowOrder(true)} style={{ marginLeft: "1rem" }}>Completar orden</button>
+  <button onClick={clearCart} style={{ marginTop: "1rem" }}>Vaciar carrito</button>
+  <button onClick={() => setShowCheckout(true)} style={{ marginLeft: "1rem" }}>Completar orden</button>
 
       <div style={{ marginTop: "2rem" }}>
         <h3>Guardados para después</h3>
