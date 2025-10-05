@@ -1,4 +1,6 @@
 
+import NewProduct from './NewProduct.jsx';
+
 
 import { useState } from 'react';
 import './App.css';
@@ -20,6 +22,11 @@ import UserAccount from './UserAccount.jsx';
 import OrderDetail from './OrderDetail.jsx';
 import EditUserData from './EditUserData.jsx';
 import ChangePassword from './ChangePassword.jsx';
+import AdminDashboard from './AdminDashboard.jsx';
+import UserList from './UserList.jsx';
+
+import UserDetail from './UserDetail.jsx';
+import OrderList from './OrderList.jsx';
 
 
 function App() {
@@ -33,9 +40,17 @@ function App() {
 
   const [showAccount, setShowAccount] = useState(false);
   const [orderDetail, setOrderDetail] = useState(null);
+  const [showOrderList, setShowOrderList] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [userData, setUserData] = useState({ nombre: "", apellido: "", correo: "" });
+  const [isAdmin, setIsAdmin] = useState(false); // Simulación de usuario admin
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [showUserList, setShowUserList] = useState(false);
+  const [userDetail, setUserDetail] = useState(null);
+  // Estados para la página de administrador
+  const [showNewProduct, setShowNewProduct] = useState(false);
+  const [showProductList, setShowProductList] = useState(false);
 
   return (
     <div className="landing-page">
@@ -45,13 +60,19 @@ function App() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {loggedIn ? (
-            <span>Bienvenido, {userName}! <button onClick={() => { setLoggedIn(false); setUserName(""); }}>Cerrar sesión</button> <button onClick={() => { setShowAccount(true); setOrderDetail(null); }}>Mi cuenta</button></span>
+            <span>
+              Bienvenido, {userName}! 
+              <button onClick={() => { setLoggedIn(false); setUserName(""); setIsAdmin(false); }}>Cerrar sesión</button>
+              <button onClick={() => { setShowAccount(true); setOrderDetail(null); setShowAdmin(false); }}>Comprador</button>
+              <button style={{ marginLeft: "1rem" }} onClick={() => { setShowAdmin(true); setShowAccount(false); setIsAdmin(true); }}>Administrador</button>
+            </span>
           ) : (
             <button onClick={() => { setShowLogin(true); setShowForgot(false); setShowRegister(false); }}>Mi cuenta</button>
           )}
         </div>
       </header>
-      {showAccount ? (
+      {/* Página de usuario comprador */}
+      {showAccount && !showAdmin ? (
         showEditUser ? (
           <EditUserData
             user={userData}
@@ -75,55 +96,84 @@ function App() {
             onChangePassword={() => setShowChangePassword(true)}
           />
         )
-      ) : showLogin && !loggedIn ? (
-        <LoginForm
-          onLogin={(name) => {
-            setLoggedIn(true);
-            setUserName(name);
-            setShowLogin(false);
-          }}
-          forgotPassword={() => { setShowForgot(true); setShowLogin(false); }}
-          register={() => { setShowRegister(true); setShowLogin(false); }}
-        />
-      ) : showForgot ? (
-        <ForgotPassword onBack={() => { setShowForgot(false); setShowLogin(true); }} />
-      ) : showRegister ? (
-        <Register
-          onBack={() => { setShowRegister(false); setShowLogin(true); }}
-          onRegister={(name) => {
-            setLoggedIn(true);
-            setUserName(name);
-            setShowRegister(false);
-          }}
-        />
-      ) : !loggedIn ? (
-        <LoginForm
-          onLogin={(name) => {
-            setLoggedIn(true);
-            setUserName(name);
-            setShowLogin(false);
-          }}
-          forgotPassword={() => { setShowForgot(true); setShowLogin(false); }}
-          register={() => { setShowRegister(true); setShowLogin(false); }}
-        />
-      ) : selectedProduct ? (
-        <ProductDetail product={selectedProduct} onBack={() => setSelectedProduct(null)} />
-      ) : search ? (
-        <SearchResults search={search} onSelect={setSelectedProduct} />
-      ) : (
-        <>
-          <Banner />
-          <div id="categorias">
-            <FeaturedCategories />
-          </div>
-          <div id="mas-vendidos">
-            <BestSellers />
-          </div>
-          <section className="bottom-section" id="nuevos">
-            <NewCategories />
-            <NewProducts />
-          </section>
-        </>
+  ) : null}
+      {/* Página de administrador */}
+      {showAdmin && isAdmin ? (
+        showNewProduct ? (
+          <NewProduct onSave={() => { setShowNewProduct(false); }} onCancel={() => setShowNewProduct(false)} />
+        ) : showProductList ? (
+          <ProductList
+            onProductDetail={p => {}}
+            onRegisterProduct={() => setShowNewProduct(true)}
+          />
+        ) : showUserList ? (
+          userDetail ? (
+            <UserDetail user={userDetail} onBack={() => setUserDetail(null)} />
+          ) : (
+            <UserList onUserDetail={u => setUserDetail(u)} />
+          )
+        ) : (
+          <AdminDashboard
+            onShowUserList={() => setShowUserList(true)}
+            onShowProductList={() => setShowProductList(true)}
+          />
+        )
+  ) : null}
+      {/* Página de login y registro */}
+      {!loggedIn && (showLogin || showForgot || showRegister) ? (
+        showLogin ? (
+          <LoginForm
+            onLogin={(name) => {
+              setLoggedIn(true);
+              setUserName(name);
+              setShowLogin(false);
+            }}
+            forgotPassword={() => { setShowForgot(true); setShowLogin(false); }}
+            register={() => { setShowRegister(true); setShowLogin(false); }}
+          />
+        ) : showForgot ? (
+          <ForgotPassword onBack={() => { setShowForgot(false); setShowLogin(true); }} />
+        ) : (
+          <Register
+            onBack={() => { setShowRegister(false); setShowLogin(true); }}
+            onRegister={(name) => {
+              setLoggedIn(true);
+              setUserName(name);
+              setShowRegister(false);
+            }}
+          />
+        )
+  ) : null}
+      {/* Página principal y navegación general */}
+      {!showAccount && !showAdmin && loggedIn && !showLogin && !showForgot && !showRegister && (
+        showOrderList ? (
+          orderDetail ? (
+            <OrderDetail order={orderDetail} onBack={() => setOrderDetail(null)} />
+          ) : (
+            <OrderList onOrderDetail={order => setOrderDetail(order)} />
+          )
+        ) : selectedProduct ? (
+          <ProductDetail product={selectedProduct} onBack={() => setSelectedProduct(null)} />
+        ) : search ? (
+          <SearchResults search={search} onSelect={setSelectedProduct} />
+        ) : (
+          <>
+            <Banner />
+            <div id="categorias">
+              <FeaturedCategories />
+            </div>
+            <div id="mas-vendidos">
+              <BestSellers />
+            </div>
+            <section className="bottom-section" id="nuevos">
+              <NewCategories />
+              <NewProducts />
+            </section>
+            <button style={{ margin: "2rem auto", display: "block" }} onClick={() => setShowOrderList(true)}>
+              Ver listado de órdenes
+            </button>
+          </>
+        )
       )}
       <div id="carrito">
         <Cart loggedIn={loggedIn} />
