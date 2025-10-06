@@ -6,6 +6,7 @@ import Register from "./pages/Login/Register.jsx"
 import Sesion from "./pages/Mi_Cuenta/Sesion.jsx"
 import Edit from "./pages/Mi_Cuenta/Edit.jsx"
 import ChangePassword from "./pages/Mi_Cuenta/ChangePassword.jsx"
+import OrderDetail from "./pages/Mi_Cuenta/OrderDetail.jsx"
 
 
 import { Routes, Route } from "react-router-dom";
@@ -26,6 +27,7 @@ const App = () => {
          <Route path="Edit" element={<Edit />}/>
          <Route path="Car" element={<Car />}/>
          <Route path="ChangePassword" element={<ChangePassword />}/>
+         <Route path="OrderDetail" element={<OrderDetail />}/>
  
          <Route path="/Home/:nombre" element={<Home />}/>
          <Route path="/Producto/:nombre" element={<Home />}/>
@@ -33,6 +35,7 @@ const App = () => {
          <Route path="Password_email/:nombre" element={<Password_email />}/>
          <Route path="Sesion/:nombre" element={<Sesion />}/>
          <Route path="ChangePassword/:nombre" element={<ChangePassword />}/>
+         <Route path="OrderDetail/:id" element={<OrderDetail />}/>
         </Route>
      </Routes>
   );
