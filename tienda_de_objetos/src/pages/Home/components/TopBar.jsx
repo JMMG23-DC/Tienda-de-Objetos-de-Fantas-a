@@ -25,7 +25,8 @@ export const TopBar = () => {
           <NavLink to="Carrito">Carrito de Compras</NavLink>
           <NavLink to="/">Home</NavLink>
           <NavLink to={"/Producto"+"/"+nombre}>Producto</NavLink>
-          <NavLink to={"/Login"+"/"+nombre}>{nombre}</NavLink>
+          <NavLink>{nombre}</NavLink>
+          <NavLink to={"/Sesion"+"/"+nombre}>Mi Cuenta</NavLink>
         </nav>
       </div>
     )}

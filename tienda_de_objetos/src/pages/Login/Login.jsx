@@ -1,26 +1,3 @@
-
-
-/* Mi Cuenta */
-
-/* Login */
-/* Cuenta de Usuario: 
-  Muestra Resumenes de ordenes
-  recientes (lista) Con Paginación
-  - Cada imagen debe redirigir a la pagina de detalle de órdenes
-  -  La pagina de detalle de ordenes muestra los datos de la orden 
-    Los datos no se pueden modificar
-    Solo pueden se peuden cancelar la orden
-
-  */
-
-/* La pagina de registro 
-  permite cambiar el nombre, apellido o correo
-*/
-
-/* La pagina de cambiar pasword al usuario logeado le permite
-   cambiar sus passowrd
-*/
-
 import { useState } from "react";
 import { useNavigate, NavLink, useParams } from "react-router-dom";
 import { TopBar } from "../Home/components/TopBar";
@@ -52,34 +29,8 @@ export const Login = () => {
     navigate("/Home/"+nombre_registro);
   };
 
-
-
-  // Sesión iniciada
-  const {nombre} = useParams();
-  
-  // Para cambiar nombre/correo si ya hay sesión
-  const [nuevoNombre, setNuevoNombre] = useState("");
-  const [nuevoEmail, setNuevoEmail] = useState("");
-
-  const handleActualizar = (e) => {
-    e.preventDefault();
-
-    if (!nuevoNombre && !nuevoEmail) {
-      setError("Ingresa un nuevo nombre o correo para actualizar");
-      return;
-    }
-
-    console.log("Nuevo nombre:", nuevoNombre || nombre);
-    console.log("Nuevo correo:", nuevoEmail || "No actualizado");
-    setError("");
-    alert("Datos actualizados correctamente");
-  };
-
-
   return (
-    <>
-    {!nombre ? ( 
-      // Registro de sesión ********************************
+      // Iniciar Sesión ********************************
       <>
       <TopBar />
       <section className="login-container">
@@ -115,42 +66,9 @@ export const Login = () => {
           </div>
         </div>
       </section>
-
       <Footer />
       </>
-    ):(
-      // Cambiar nombre o correo
-      <>
-        <TopBar />
-        <section className="login-container">
-          <div className="login-card">
-            <h1>Actualizar Nombre</h1>
-            <form onSubmit={handleActualizar}>
-              <input
-                type="text"
-                placeholder={`   Nuevo nombre (actual: ${nombre})`}
-                value={nuevoNombre}
-                onChange={(e) => setNuevoNombre(e.target.value)}
-              />
-              <input
-                type="email"
-                placeholder="   Ingresar Correo Inicial"
-                value={nuevoEmail}
-                onChange={(e) => setNuevoEmail(e.target.value)}
-              />
-              <button type="submit">Actualizar Nombre</button>
-            </form>
-            
-            <div className="login-links">
-              <NavLink to={"/Password_email"+"/"+nombre}>Cambiar Contraseñar</NavLink>
-            </div>
-          
-          </div>
-        </section>
-        <Footer />
-      </>
-      )}
-    </>
+    
   );
 };
 

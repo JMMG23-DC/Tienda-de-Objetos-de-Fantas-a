@@ -1,87 +1,133 @@
-/* Contenedor central del login */
-.login-container {
+/* Contenedor principal */
+.sesion-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #FFED00, #FF0000);
-}
-
-/* Tarjeta del formulario */
-.login-card {
-  background-color: #fff;
-  border-radius: 15px;
-  padding: 3rem 2rem;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  text-align: center;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-/* Título del login */
-.login-card h1 {
+  min-height: 90vh;
   font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 32px;
-  color:black;
+}
+
+/* Columna izquierda (Mi Cuenta) */
+.sesion-panel {
+  background-color: #000; /* negro */
+  color: #fff;
+  width: 25%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 3px solid #f23e02;
+}
+
+.sesion-panel h2 {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #f23e02;
+  padding-bottom: 0.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.sesion-btn {
+  background-color: #f23e02;
+  color: #fff;
+  text-decoration: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  width: 100%;
+  text-align: center;
+  margin: 0.5rem 0;
+  transition: 0.3s;
+}
+
+.sesion-btn:hover {
+  background-color: #d83601;
+}
+
+/* Columna derecha (Órdenes y bienvenida) */
+.sesion-ordenes {
+  background-color: #fff;
+  flex-grow: 1;
+  padding: 2rem 3rem;
+  color: #000;
+}
+
+.sesion-titulo {
+  font-size: 2rem;
+  color: #013750;
   margin-bottom: 1.5rem;
 }
 
-/* Entradas - Inputs */
-.login-card input {
-  width: 100%;
-  padding: 12px 0px;
-  margin: 10px 0;
-  border: 2px solid rgba(0, 0, 0, 0.623);
-  border-radius: 12px;
-  font-size: 16px;
-  outline: none;
+/* Lista de órdenes */
+.ordenes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* Botón */
-.login-card button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 15px;
-  background-color: #f23e02;
-  color: #fff;
-  font-size: 18px;
-  border: none;
+.orden-item {
+  display: flex;
+  align-items: center;
+  border: 2px solid #ccc;
   border-radius: 12px;
+  padding: 1rem;
+  justify-content: space-between;
+  transition: box-shadow 0.3s;
+}
+
+.orden-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.orden-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+}
+
+.orden-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  margin-right: 1.5rem;
+  object-fit: cover;
+}
+
+/* Botón cancelar pedido */
+.btn-cancelar {
+  background-color: #ff0000;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.btn-cancelar:hover {
+  background-color: #c40000;
+}
+
+/* Paginación */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+.paginacion button {
+  background-color: #013750;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
   cursor: pointer;
   transition: 0.3s;
 }
 
-.login-card button:hover {
-  background-color: #d83601;
-}
-
-/* Enlaces de registro y recuperación */
-.login-links {
-  margin-top: 15px;
-  font-size: 14px;
-}
-
-.login-links a {
-  text-decoration: none;
-  color: #013750;
-  transition: 0.3s;
-}
-
-.login-links a:hover {
-  text-decoration: underline;
-}
-
-/* Mensaje de error */
-.login-card .error {
-  color: red;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-/* Animación de aparición */
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(-20px);}
-  to {opacity: 1; transform: translateY(0);}
+.paginacion button:hover {
+  background-color: #025f7a;
 }

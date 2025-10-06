@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { Footer } from "../Home/components/Footer";
 import "../Login/login.css";
 
@@ -9,7 +9,9 @@ export const ChangePassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  
   const navigate = useNavigate();
+  const { nombre } = useParams();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ export const ChangePassword = () => {
     }
 
     // Aquí iría la lógica real con tu backend
+    console.log("Usuario:", nombre);
     console.log("Contraseña actual:", currentPassword);
     console.log("Nueva contraseña:", newPassword);
 
@@ -36,8 +39,6 @@ export const ChangePassword = () => {
     setNewPassword("");
     setConfirmPassword("");
 
-    // Redirigir a "Mi cuenta" después de cambiar la contraseña
-    // navigate("/mi-cuenta");
   };
 
   return (
@@ -72,11 +73,10 @@ export const ChangePassword = () => {
           </form>
 
           <div className="login-links">
-            <NavLink to="/mi-cuenta">Volver a Mi Cuenta</NavLink>
+            <NavLink to={`/Sesion/${nombre}`}>Volver a Mi Cuenta</NavLink>
           </div>
         </div>
       </section>
-
       <Footer />
     </>
   );
