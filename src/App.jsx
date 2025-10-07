@@ -57,17 +57,55 @@ function App() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showProductList, setShowProductList] = useState(false);
 
+  // Function to reset to main menu
+  const goToMainMenu = () => {
+    setShowAccount(false);
+    setShowAdmin(false);
+    setShowLogin(false);
+    setShowForgot(false);
+    setShowRegister(false);
+    setShowOrderList(false);
+    setOrderDetail(null);
+    setSelectedProduct(null);
+    setShowDetail(false);
+    setSearch("");
+    setShowEditUser(false);
+    setShowChangePassword(false);
+    setShowUserList(false);
+    setUserDetail(null);
+    setShowNewProduct(false);
+    setShowAddCategory(false);
+    setShowProductList(false);
+  };
+
   return (
     <div className="landing-page">
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 2rem", background: "#fff" }}>
-        <div style={{ flex: 1 }}>
-          <SearchBar onSearch={setSearch} />
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          {/* Back to Main Menu button */}
+          {loggedIn && (showAccount || showAdmin || showOrderList || selectedProduct || search) && (
+            <button 
+              onClick={goToMainMenu}
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "0.5rem",
+                background: "#f0f0f0",
+                border: "1px solid #ddd"
+              }}
+            >
+              ← Menú Principal
+            </button>
+          )}
+          <div style={{ flex: 1 }}>
+            <SearchBar onSearch={setSearch} />
+          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {loggedIn ? (
             <span>
               Bienvenido, {userName}! 
-              <button onClick={() => { setLoggedIn(false); setUserName(""); setIsAdmin(false); }}>Cerrar sesión</button>
+              <button onClick={() => { setLoggedIn(false); setUserName(""); setIsAdmin(false); goToMainMenu(); }}>Cerrar sesión</button>
               <button onClick={() => { setShowAccount(true); setOrderDetail(null); setShowAdmin(false); }}>Comprador</button>
               <button style={{ marginLeft: "1rem" }} onClick={() => { setShowAdmin(true); setShowAccount(false); setIsAdmin(true); }}>Administrador</button>
             </span>
@@ -182,11 +220,11 @@ function App() {
               <FeaturedCategories />
             </div>
             <div id="mas-vendidos">
-              <BestSellers />
+              <BestSellers onProductClick={(product) => setSelectedProduct(product)} />
             </div>
             <section className="bottom-section" id="nuevos">
               <NewCategories />
-              <NewProducts />
+              <NewProducts onProductClick={(product) => setSelectedProduct(product)} />
             </section>
             <button style={{ margin: "2rem auto", display: "block" }} onClick={() => setShowOrderList(true)}>
               Ver listado de órdenes

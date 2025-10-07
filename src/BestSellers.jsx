@@ -1,25 +1,41 @@
 const bestSellers = [
-  { id: 1, name: "Varita mágica", price: 120 },
-  { id: 2, name: "Poción de invisibilidad", price: 200 },
-  { id: 3, name: "Espada legendaria", price: 350 },
-  { id: 4, name: "Escudo encantado", price: 180 },
-  { id: 5, name: "Anillo de poder", price: 250 },
-  { id: 6, name: "Capa voladora", price: 300 },
-  { id: 7, name: "Botas rápidas", price: 90 },
-  { id: 8, name: "Libro de hechizos", price: 220 },
-  { id: 9, name: "Amuleto de suerte", price: 80 },
-  { id: 10, name: "Casco de dragón", price: 400 },
-  { id: 11, name: "Guantes mágicos", price: 110 },
-  { id: 12, name: "Escama de fénix", price: 500 },
+  { id: 1, name: "Varita mágica", price: 120, category: "Magia", image: "/images/varita_magica.jpg" },
+  { id: 2, name: "Poción de invisibilidad", price: 200, category: "Pociones", image: "/images/pocion_invisibilidad.jpg" },
+  { id: 3, name: "Espada legendaria", price: 350, category: "Armas", image: "/images/espada_legendaria.jpg" },
+  { id: 4, name: "Escudo encantado", price: 180, category: "Armas", image: "/images/escudo_encantado.jpg" },
+  { id: 5, name: "Anillo de poder", price: 250, category: "Magia", image: "/images/anillo_de_poder.jpg" },
+  { id: 6, name: "Capa voladora", price: 300, category: "Magia", image: "/images/capa_voladora.jpg" },
+  { id: 7, name: "Botas rápidas", price: 90, category: "Artefactos", image: "/images/botas_rapidas.jpg" },
+  { id: 8, name: "Libro de hechizos", price: 220, category: "Magia", image: "/images/libro_hechizos.jpg" },
+  { id: 9, name: "Amuleto de suerte", price: 80, category: "Reliquias", image: "/images/amuleto_de_suerte.jpg" },
+  { id: 10, name: "Casco de dragón", price: 400, category: "Armas", image: "/images/casco_dragon.jpg" },
+  { id: 11, name: "Guantes mágicos", price: 110, category: "Magia", image: "/images/guantes_magicos.jpg" },
+  { id: 12, name: "Escama de fénix", price: 500, category: "Reliquias", image: "/images/escama_de_fenix.jpg" },
 ];
 
-export default function BestSellers() {
+export default function BestSellers({ onProductClick }) {
   return (
     <div className="best-sellers">
       <h2>Más vendidos del mes</h2>
       <ul>
         {bestSellers.map((item) => (
-          <li key={item.id}>{item.name} - ${item.price}</li>
+          <li key={item.id}>
+            <button 
+              onClick={() => onProductClick && onProductClick(item)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#007bff",
+                cursor: "pointer",
+                textDecoration: "underline",
+                padding: 0,
+                font: "inherit"
+              }}
+            >
+              {item.name}
+            </button>
+            {' '}- ${item.price}
+          </li>
         ))}
       </ul>
     </div>

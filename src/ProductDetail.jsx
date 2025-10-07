@@ -61,13 +61,12 @@ export default function ProductDetail({
       if (typeof onAddToCart === "function") {
         onAddToCart({
           id: display.id,
-          nombre: display.nombre,
-          categoria: display.categoria,
-          precio:
-            typeof display.precio === "number"
+          name: display.nombre,
+          price: typeof display.precio === "number"
               ? display.precio
               : Number(display.precio) || 0,
-          imagen: display.imagen || null,
+          category: display.categoria,
+          image: display.imagen || null,
           quantity: quantity,
         });
         setAddedToCart(true);
