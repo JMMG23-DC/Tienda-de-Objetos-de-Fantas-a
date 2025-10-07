@@ -29,6 +29,7 @@ import UserList from './UserList.jsx';
 import UserDetail from './UserDetail.jsx';
 import OrderList from './OrderList.jsx';
 import { useCart } from './CartContext.jsx';
+import MedievalQuote from './MedievalQuote.jsx';
 
 
 function App() {
@@ -215,6 +216,7 @@ function App() {
           <SearchResults search={search} onSelect={(p) => { setSelectedProduct(p); setShowDetail(true); }} />
         ) : (
           <>
+            <MedievalQuote />
             <Banner />
             <div id="categorias">
               <FeaturedCategories />

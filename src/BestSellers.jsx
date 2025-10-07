@@ -16,7 +16,19 @@ const bestSellers = [
 export default function BestSellers({ onProductClick }) {
   return (
     <div className="best-sellers">
-      <h2>Más vendidos del mes</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+        <img 
+          src="/images2/mas_vendidos_del_mes.png" 
+          alt="Más vendidos del mes" 
+          style={{ 
+            maxWidth: "120px", 
+            height: "auto",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+          }} 
+        />
+        <h2 style={{ margin: 0 }}>Más vendidos del mes</h2>
+      </div>
       <ul>
         {bestSellers.map((item) => (
           <li key={item.id}>

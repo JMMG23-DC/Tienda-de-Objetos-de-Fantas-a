@@ -10,7 +10,19 @@ const newProducts = [
 export default function NewProducts({ onProductClick }) {
   return (
     <div className="new-products">
-      <h3>Productos nuevos</h3>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+        <img 
+          src="/images2/categorias_nuevas.png" 
+          alt="Productos nuevos" 
+          style={{ 
+            maxWidth: "120px", 
+            height: "auto",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+          }} 
+        />
+        <h3 style={{ margin: 0 }}>Productos nuevos</h3>
+      </div>
       <ul>
         {newProducts.map((item) => (
           <li key={item.id}>

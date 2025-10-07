@@ -63,7 +63,19 @@ export default function Cart({ loggedIn }) {
 
   return (
     <div className="cart">
-      <h2>Carrito de compras</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+        <img 
+          src="/images2/carrito_de_compras.png" 
+          alt="Carrito de compras" 
+          style={{ 
+            maxWidth: "120px", 
+            height: "auto",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+          }} 
+        />
+        <h2 style={{ margin: 0 }}>Carrito de compras</h2>
+      </div>
       {cart.length === 0 ? (
         <div>Carrito vacío</div>
       ) : (
