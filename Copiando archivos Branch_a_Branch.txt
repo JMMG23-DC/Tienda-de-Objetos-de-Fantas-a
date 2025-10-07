@@ -1,0 +1,5 @@
+@echo off
+git checkout main -- .
+git add .
+git commit -m "Copiando Archivos del main a mi rama Adrian"
+git push origin main
