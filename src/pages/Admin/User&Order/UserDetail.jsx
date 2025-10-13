@@ -1,14 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 
-// Mock de usuarios (debe coincidir con UserList)
-const mockUsers = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  nombre: `Nombre${i + 1}`,
-  apellido: `Apellido${i + 1}`,
-  correo: `usuario${i + 1}@mail.com`,
-  activo: i % 2 === 0,
-}));
+const mockUsers = [
+  { id: 1, nombre: "Ana", apellido: "Torres", correo: "ana.torres@gmail.com", activo: true },
+  { id: 2, nombre: "Luis", apellido: "Doig", correo: "doigluis@gmail.com", activo: false },
+  { id: 3, nombre: "Maria", apellido: "Rojas", correo: "marojas@gmail.com", activo: true },
+  { id: 4, nombre: "Carlos", apellido: "Lazo", correo: "clazo@hotmail.com", activo: false },
+  { id: 5, nombre: "Sofia", apellido: "Lopez", correo: "soflopez@hotmail.com", activo: true },
+];
 
 export default function UserDetail() {
   const { id } = useParams();
@@ -26,14 +25,7 @@ export default function UserDetail() {
   }));
 
   return (
-    <div style={{
-      maxWidth: 400,
-      margin: "2rem auto",
-      padding: "2rem",
-      background: "#fff",
-      borderRadius: 8,
-      boxShadow: "0 2px 8px #0002"
-    }}>
+    <div style={{ maxWidth: 400, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
       <h3>Detalle de usuario</h3>
       <p><b>ID:</b> {user.id}</p>
       <p><b>Nombre:</b> {user.nombre}</p>

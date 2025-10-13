@@ -26,11 +26,6 @@ export const Register = () => {
       return;
     }
 
-    // Aquí iría la lógica de registro con tu backend
-    console.log("Nombre:", nombre);
-    console.log("Email:", email);
-    console.log("Password:", password);
-
     setError("");
 
     // Redirigir al Home con usuario logueado

@@ -9,17 +9,13 @@ import qrImage from "../../../public/vite.svg";
 const LOCAL_STORAGE_CART_KEY = "cart"; 
 const LOCAL_STORAGE_USER_KEY = "nombre";
 
-// ====================================================================
-// FUNCIONES AUXILIARES (Se mantienen igual)
-// ====================================================================
 
-// Función para obtener datos de localStorage (sin try/catch explícito)
 const getFromLocalStorage = (key, defaultValue) => {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : defaultValue;
 };
 
-// Función para guardar datos en localStorage (Mantiene try/catch donde es crítico)
+
 const setLocalStorage = (key, value) => {
     try {
         localStorage.setItem(key, JSON.stringify(value));
@@ -31,12 +27,12 @@ const setLocalStorage = (key, value) => {
 };
 
 export const Checkout = () => {
-    // Inicializar useNavigate
+   
     const navigate = useNavigate();
     
-    // 1. Cargar datos iniciales del carrito y usuario desde localStorage
+    //Cargar datos iniciales del carrito y usuario desde localStorage
     const [cartItems, setCartItems] = useState(() => {
-        // Solo incluimos productos que NO estén "guardados para después" (Comportamiento original)
+        //Solo incluimos productos que NO estén "guardados para después"
         const fullCart = getFromLocalStorage(LOCAL_STORAGE_CART_KEY, []);
         return fullCart.filter(item => !item.guardado);
     });
@@ -53,7 +49,7 @@ export const Checkout = () => {
     const [cvv, setCvv] = useState("");
     const [metodoEnvio, setMetodoEnvio] = useState("estandar");
 
-    // 2. Calcular totales usando useMemo para optimización
+    //Calcular totales usando useMemo 
     const { subtotal, costoEnvio, totalFinal } = useMemo(() => {
         const subtotalCalc = cartItems.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
         const envioCalc = metodoEnvio === "express" ? 20 : 10;
@@ -67,9 +63,9 @@ export const Checkout = () => {
     }, [cartItems, metodoEnvio]);
 
 
-    // 3. Lógica para confirmar la orden, vaciar el carrito y redirigir
+    // confirmar la orden, vaciar el carrito y redirigir
     const handleConfirmarOrden = () => {
-        // --- VALIDACIONES ---
+        
         if (!nombre || !direccion || !ciudad) {
             alert("Por favor completa los datos de envío.");
             return;
@@ -84,18 +80,18 @@ export const Checkout = () => {
             return;
         }
         
-        // --- CREACIÓN DE LA ORDEN (Solo para mostrar el resumen, no se guarda) ---
+        //CREACIÓN DE LA ORDEN (solo para mostrar el resumen) mas no guardar
         const nuevaOrden = {
             id: Date.now(),
             cliente: nombre,
             total: parseFloat(totalFinal),
         };
 
-        // --- VACIAR CARRITO COMPLETAMENTE ---
-        // 🚨 CAMBIO: Se llama a setLocalStorage con un array vacío []
+        // VACIAR CARRITO 
+        
         const cartCleared = setLocalStorage(LOCAL_STORAGE_CART_KEY, []); 
         
-        // --- RESPUESTA Y REDIRECCIÓN ---
+        // RESPUESTA Y REDIRECCIÓN 
         if (cartCleared) {
             setCartItems([]); // Limpiar el estado local
             alert(`Orden #${nuevaOrden.id} completada con éxito. Total: S/ ${totalFinal}. Volviendo al inicio.`);
@@ -104,7 +100,7 @@ export const Checkout = () => {
             navigate("/"); 
 
         } else {
-             // Este error ya fue manejado y logeado por setLocalStorage
+            
             alert("Hubo un error al procesar tu orden debido a un problema de almacenamiento. Intenta nuevamente.");
         }
     };

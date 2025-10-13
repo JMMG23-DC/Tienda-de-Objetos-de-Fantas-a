@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Simulación de usuarios
-const mockUsers = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  nombre: `Nombre${i + 1}`,
-  apellido: `Apellido${i + 1}`,
-  correo: `usuario${i + 1}@mail.com`,
-  activo: i % 2 === 0, // algunos activos, otros desactivados
-}));
+const mockUsers = [
+  { id: 1, nombre: "Ana", apellido: "Torres", correo: "ana.torres@gmail.com", activo: true },
+  { id: 2, nombre: "Luis", apellido: "Doig", correo: "doigluis@gmail.com", activo: false },
+  { id: 3, nombre: "Maria", apellido: "Rojas", correo: "marojas@gmail.com", activo: true },
+  { id: 4, nombre: "Carlos", apellido: "Lazo", correo: "clazo@hotmail.com", activo: false },
+  { id: 5, nombre: "Sofia", apellido: "Lopez", correo: "soflopez@hotmail.com", activo: true },
+];
 
 export default function UserList({ onUserDetail }) {
   const navigate = useNavigate();

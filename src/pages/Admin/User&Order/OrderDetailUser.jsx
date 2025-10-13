@@ -4,7 +4,6 @@ export default function OrderDetailUser() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Simulación de orden
   const order = {
     id: id,
     date: `2025-09-${(id % 30) + 1}`,

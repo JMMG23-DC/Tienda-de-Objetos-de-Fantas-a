@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { Footer } from "../Home/components/Footer"
 
 export const Edit = () => {
   // Obtener parámetro del nombre en la URL
   const [nombre, setNombre] = useState()
+  const navigate = useNavigate()
 
   useEffect(()=>{
     setNombre(localStorage.getItem("nombre"))
   },[])
-
-
-
-
 
   // Estados para nuevos datos
   const [nuevoNombre, setNuevoNombre] = useState("");
@@ -20,8 +18,10 @@ export const Edit = () => {
 
   const handleActualizar = (e) => {
     e.preventDefault();
-    if (!nuevoNombre && !nuevoEmail) {
+    if (nuevoNombre != "" && nuevoEmail != "") {
         alert("Datos actualizados correctamente");
+        localStorage.setItem("nombre",nuevoNombre)
+        navigate("/Sesion")
       return;
     }
   };
@@ -55,6 +55,7 @@ export const Edit = () => {
           </div>
         </div>
       </section>
+      <Footer/>
     </>
   );
 };
