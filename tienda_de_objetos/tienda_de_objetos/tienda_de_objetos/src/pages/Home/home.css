@@ -1,0 +1,165 @@
+/* seccion_titulo */
+.seccion_titulo {
+    padding: 5rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, #FFED00, #FF0000);
+
+    border-radius: 15px;
+    margin: 2rem auto;
+    max-width: 100%;
+}
+
+.seccion_titulo h1 {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 40px;
+    color: #f5f0ff;
+    margin-bottom: 1rem;
+}
+
+.seccion_titulo p {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 16px;
+    color: #f5f0ff;
+}
+
+/* seccion_producto */
+.seccion_producto {
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.seccion_producto h2 {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 30px;
+    margin-bottom: 2rem;
+}
+
+
+
+/* Productos distribución con flex */
+.productos-flex {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap; /* permite que los items bajen de línea en pantallas pequeñas */
+}
+
+/* Producto Carta Estilo*/
+.producto-card {
+    border-radius: 12px;
+    padding: 1rem;
+    width: 200px; /* se puede ajustar */
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+.producto-card img {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+/* Texto dentro de las cartas de producto */
+.producto-card h3 {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 17px;
+    margin-bottom: 0.5rem;
+}
+
+.producto-card p {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 16px;
+    color: #000000a9;
+    margin-bottom: 0.5rem;
+}
+
+.precio {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 16px;
+    font-weight: bold;
+}
+
+span{
+    text-align: left;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Scroll horizontal para productos */
+.productos-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 1rem 0;
+  scroll-behavior: smooth;
+  justify-content: flex-start; /* Permite alinear desde la izquierda */
+}
+
+/* Estilo para la Barra */
+.productos-scroll::-webkit-scrollbar {
+  height: 10px;
+  
+}
+
+/* Colo para la barra  */
+.productos-scroll::-webkit-scrollbar-thumb {
+  background: #ff5500; 
+  border-radius: 4px;
+}
+
+/* Tarjetas dentro del scroll horizontal */
+.productos-scroll .producto-card {
+  min-width: 250px; 
+  max-width: 250px; 
+  background-color: #1a1a1a; /* fondo oscuro */
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.productos-scroll .producto-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+.productos-scroll .producto-card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.productos-scroll .producto-card h3 {
+  font-size: 17px;
+  margin-bottom: 0.5rem;
+}
+
+.productos-scroll .producto-card p {
+  font-size: 16px;
+  color: #f5f5f5a9;
+  margin-bottom: 0.5rem;
+}
+
+.productos-scroll .producto-card .precio {
+  font-weight: bold;
+}

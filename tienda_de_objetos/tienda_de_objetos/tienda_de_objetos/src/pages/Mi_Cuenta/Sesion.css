@@ -1,0 +1,144 @@
+/* ===== SESIÓN (CUENTA DE USUARIO) ===== */
+.sesion-container {
+  min-height: 100vh;
+  padding: 100px 30px 40px; /* más espacio arriba para no tapar el TopBar */
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
+}
+
+.sesion-titulo {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 25px;
+}
+
+/* ----- CONTENIDO GENERAL ----- */
+.sesion-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+}
+
+/* PANEL IZQUIERDO */
+.sesion-panel {
+  flex: 1;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sesion-panel h2 {
+  margin-bottom: 15px;
+}
+
+.sesion-btn {
+  display: block;
+  background: #FF0000;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin-top: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* PANEL DERECHO */
+.sesion-ordenes {
+  flex: 3;
+  min-width: 400px;
+}
+
+/* --- LISTA EN FILAS --- */
+.ordenes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orden-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 15px;
+  gap: 20px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.orden-item:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.orden-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.orden-item h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.orden-item p {
+  margin: 3px 0;
+}
+
+/* DATOS EN FILA */
+.orden-datos {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+
+/* PAGINACIÓN */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  gap: 10px;
+}
+
+.paginacion button {
+  background: rgb(145, 143, 143);
+  border: none;
+  color: #e60000;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.paginacion button:hover:not(:disabled) {
+  background: #e60000;
+  color: #fff;
+}
+
+.paginacion button:disabled {
+  background: #ccc;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.orden-butt {
+  background-color: #e60000; /* Rojo intenso */
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}

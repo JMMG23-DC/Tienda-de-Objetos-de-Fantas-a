@@ -1,0 +1,247 @@
+/* Contenedor principal */
+.catalogo {
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1a1a1a;
+}
+
+/* Título */
+.catalogo-title {
+    font-size: 36px;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #ff5500;
+}
+
+/* Body: filtros a la izquierda y productos a la derecha */
+.catalogo-body {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap; 
+}
+/* 
+   ESTILOS DE BARRA LATERAL (SIDEBAR)
+   */
+.sidebar {
+    flex: 0 0 280px; 
+    
+    padding: 15px;
+    background-color: #fcfcfc; 
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    align-self: flex-start; 
+    
+    /* PROPIEDADES CLAVE PARA QUE SEA STICKY */
+    position: sticky; 
+    top: 20px; 
+}
+
+
+/*
+   ESTILOS DE VISTA PREVIA DEL CARRITO
+    */
+.preview-container { 
+    padding: 10px 0; 
+}
+
+.preview-container h2 {
+    font-size: 1.4em;
+    color: #ff5500;
+    border-bottom: 2px solid #ff5500;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.preview-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.preview-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 8px 0; 
+    border-bottom: 1px dotted #ccc; 
+}
+
+.preview-item:last-of-type {
+    border-bottom: none;
+}
+
+.controls-container {
+    display: flex; 
+    align-items: center; 
+    justify-content: flex-end;
+    flex: 1;
+    max-width: 100px;
+    margin-right: 10px;
+}
+
+.control-btn {
+    padding: 3px 8px; 
+    background: #fff; 
+    border: 1px solid #e60000; /* Borde rojo */
+    color: #e60000;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+    line-height: 1;
+    font-size: 1.2em;
+    transition: background-color 0.2s;
+}
+
+.control-btn:hover {
+    background-color: #ffeaea;
+}
+
+.preview-total { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 15px 0 5px 0; 
+    font-weight: bold; 
+    font-size: 1.1em;
+    border-top: 2px solid #1a1a1a; 
+    margin-top: 10px;
+}
+
+/* ====================================================================
+   ESTILOS DE BOTÓN PRIMARY (AHORA ESTILO GENERAL)
+   ==================================================================== */
+/* Aplicamos el estilo rojo intenso a TODOS los botones por defecto */
+button,
+.primary-btn {
+    background-color: #e60000; /* Rojo intenso */
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    /* Eliminamos transform del estilo base */
+}
+
+button:hover,
+.primary-btn:hover {
+    background-color: #cc0000; 
+    /* Quitamos el transform aquí para evitar que los botones pequeños se muevan */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Devolvemos el transform SOLO a las tarjetas grandes */
+.producto-card button:hover {
+    transform: translateY(-2px); /* Mantenemos el movimiento para los botones grandes */
+}
+
+
+/* ====================================================================
+   ESTILOS DE PRODUCTOS (COLUMNA DERECHA)
+   ==================================================================== */
+.catalogo-productos {
+    flex: 1; 
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 1.5rem;
+}
+
+.producto-card {
+    background-color: #f5f5f5;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.producto-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
+}
+
+.producto-card > div { /* Contenedor de texto dentro de la tarjeta */
+    padding: 0 0 0.5rem 0; /* Ajuste para evitar doble padding */
+}
+
+/* Texto producto */
+.producto-nombre {
+    font-size: 18px;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.producto-desc, .producto-rareza {
+    font-size: 14px;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.producto-precio {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ff5500;
+}
+
+/* Paginación */
+.catalogo-paginacion {
+    margin-top: 2rem;
+    text-align: center;
+    display: flex; /* Asegura que los botones se centren correctamente */
+    justify-content: center;
+    gap: 0.3rem;
+    grid-column: 1 / -1; /* Asegura que ocupe todo el ancho del grid */
+}
+
+.catalogo-paginacion button {
+    padding: 0.5rem 1rem;
+    margin: 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #ccc;
+    transition: background-color 0.3s;
+}
+
+
+.pagina-active {
+    background-color: #ff5500;
+    color: #fff;
+}
+
+/* Agrega esto al final de tu CSS */
+@media (max-width: 768px) {
+    
+    .catalogo {
+        padding: var(--spacing-small); /* Reduce el padding en móviles */
+    }
+
+    /* 1. Apilar el sidebar y los productos */
+    .catalogo-body {
+        flex-direction: column;
+        gap: var(--spacing-medium);
+    }
+    
+    /* 2. El sidebar ocupa el 100% del ancho */
+    .sidebar {
+        flex: 1 1 100%; /* Ocupa todo el ancho disponible */
+        position: relative; /* Evita que sea sticky en móviles */
+        top: 0;
+        margin-bottom: var(--spacing-small);
+    }
+    
+    /* 3. Reducir el tamaño mínimo de la tarjeta de producto para permitir 1 columna */
+    .catalogo-productos {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--spacing-small);
+    }
+}
