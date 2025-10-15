@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -66,3 +67,17 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+=======
+h1, h2, h3, h4, p, th, td, label, input, span, li{
+    font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+input {
+    width: 100%; 
+    padding: 8px 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 16px;
+    box-sizing: border-box; 
+}
+>>>>>>> Adrian

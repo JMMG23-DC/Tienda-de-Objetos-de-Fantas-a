@@ -1,0 +1,108 @@
+/* ===== DETALLE DE ORDEN (MODO CLARO) ===== */
+.order-detail-container {
+  min-height: 100vh;
+  padding: 100px 20px 60px;
+  font-family: "Poppins", sans-serif;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+.order-card {
+  background: #f9f9f9;
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%;
+  max-width: 550px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e5e5e5;
+}
+
+.order-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.order-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #d32f2f;
+}
+
+.order-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.order-info p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #333;
+}
+
+.order-info strong {
+  color: #d32f2f;
+}
+
+/* ----- BOTONES ----- */
+.order-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+  gap: 15px;
+}
+
+.orden-butt {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Botón Volver */
+.orden-butt.volver {
+  background-color: #ffe082;
+  color: #222;
+}
+
+.orden-butt.volver:hover {
+  background-color: #ffca28;
+  transform: scale(1.05);
+}
+
+/* Botón Cancelar */
+.orden-butt.cancelar {
+  background-color: #e53935;
+  color: #fff;
+}
+
+.orden-butt.cancelar:hover {
+  background-color: #c62828;
+  transform: scale(1.05);
+}
+
+/* ----- MENSAJE DE ERROR ----- */
+.order-error {
+  font-size: 1.2rem;
+  color: #d32f2f;
+  text-align: center;
+  margin-top: 60px;
+}

@@ -24,6 +24,7 @@ git pull origin main
 
 2. Subir tu repositorio local a Github REMOTO
 
+<<<<<<< HEAD
 git push origin main
 
 3.revertir algun merge del _pricipal
@@ -32,3 +33,6 @@ git push origin main
 * git pull origin main   # traer lo último de GitHub
 * git revert -m 1 <id-del-merge>
 * git push origin main
+=======
+git push origin main
+>>>>>>> Adrian
