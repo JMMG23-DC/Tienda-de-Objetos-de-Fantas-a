@@ -1,0 +1,136 @@
+/* ==== ESTILOS GENERALES ==== */
+.order-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: "Poppins", sans-serif;
+}
+
+.order-container h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+/* ==== SECCIONES ==== */
+.order-section {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.order-section h2 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+/* ==== LISTA DE PRODUCTOS ==== */
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.order-item p {
+  margin: 0;
+  color: #444;
+}
+
+/* ==== CAMPOS DE FORMULARIO ==== */
+input,
+select {
+  width: 100%;
+  padding: 0.8rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+input:focus,
+select:focus {
+  border-color: #00988d;
+  box-shadow: 0 0 4px rgba(0, 152, 141, 0.3);
+}
+
+/* ==== PAGO ==== */
+.qr-container {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.qr-img {
+  width: 160px;
+  height: 160px;
+  margin-top: 0.8rem;
+  border: 2px solid #00988d;
+  border-radius: 8px;
+}
+
+.tarjeta-form input {
+  margin-bottom: 0.7rem;
+}
+
+/* ==== MÉTODO DE ENVÍO ==== */
+.order-section select {
+  width: 100%;
+}
+
+/* ==== RESUMEN DE LA ORDEN ==== */
+.order-summary {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-top: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.order-summary p,
+.order-summary h3 {
+  margin: 0.4rem 0;
+  color: #333;
+}
+
+/* ==== BOTÓN FINAL ==== */
+.btn-confirmar {
+  display: block;
+  width: 100%;
+  background-color: #00988d;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 2rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirmar:hover {
+  background-color: #007a70;
+}
+
+/* ==== RESPONSIVE ==== */
+@media (max-width: 768px) {
+  .order-container {
+    padding: 1rem;
+  }
+
+  .order-section {
+    padding: 1rem;
+  }
+
+  .btn-confirmar {
+    font-size: 1rem;
+  }
+}

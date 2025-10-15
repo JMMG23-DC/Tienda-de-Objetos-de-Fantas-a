@@ -11,7 +11,7 @@ export const ChangePassword = () => {
   const [message, setMessage] = useState("");
   
   const navigate = useNavigate();
-  const { nombre } = useParams();
+  const [nombre, setNombre] = useState(() => localStorage.getItem("nombre"));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -27,11 +27,6 @@ export const ChangePassword = () => {
       setMessage("");
       return;
     }
-
-    // Aquí iría la lógica real con tu backend
-    console.log("Usuario:", nombre);
-    console.log("Contraseña actual:", currentPassword);
-    console.log("Nueva contraseña:", newPassword);
 
     setError("");
     setMessage("¡Contraseña actualizada con éxito!");
@@ -73,7 +68,7 @@ export const ChangePassword = () => {
           </form>
 
           <div className="login-links">
-            <NavLink to={`/Sesion/${nombre}`}>Volver a Mi Cuenta</NavLink>
+            <NavLink to={`/Sesion`}>Volver a Mi Cuenta</NavLink>
           </div>
         </div>
       </section>

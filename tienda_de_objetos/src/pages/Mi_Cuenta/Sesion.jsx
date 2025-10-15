@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { useParams, NavLink, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { usersData } from "../../data/usersData";
 import { TopBar } from "../Home/components/TopBar";
 import "./Sesion.css";
 
 export const Sesion = () => {
-  const { nombre } = useParams();
+  const nombre = useState(() => localStorage.getItem("nombre"));
+  const navigate = useNavigate()
 
   // Filtramos las órdenes del usuario
-  const usuarioOrdenes = usersData.filter(
-    (user) => user.nombre_usuario === nombre
-  );
+  const usuarioOrdenes = usersData.filter((user) => user.nombre_usuario === nombre);
 
   if (usuarioOrdenes.length === 0) {
     return (
@@ -39,9 +38,16 @@ export const Sesion = () => {
     if (paginaActual < totalPaginas) setPaginaActual(paginaActual + 1);
   };
 
+
+  // Cerrar Sesion ----------
+  const cerrar_sesion = () =>{
+    localStorage.setItem("nombre","");
+    navigate("/")
+    
+  }
   return (
     <>
-      {/* 🔹 El TopBar va fuera para no heredar el fondo */}
+      {/*El TopBar va fuera para no heredar el fondo */}
       <TopBar />
 
       <section className="sesion-container">
@@ -49,12 +55,9 @@ export const Sesion = () => {
           {/* Panel Izquierdo */}
           <div className="sesion-panel">
             <h2>Cuenta {nombre}</h2>
-            <NavLink to={`/Edit/${nombre}`} className="sesion-btn">
-              Editar Perfil
-            </NavLink>
-            <NavLink to={`/ChangePassword/${nombre}`} className="sesion-btn">
-              Cambiar Contraseña
-            </NavLink>
+            <button onClick={()=>navigate("/Edit")} className="sesion-btn" style={{width: "100%"}}>Editar Perfil</button>
+            <button onClick={()=>navigate("/ChangePassword")} className="sesion-btn" style={{width: "100%"}}>Cambiar Contraseña</button>
+            <button onClick={cerrar_sesion} className="sesion-btn" style={{width: "100%"}}>Cerrar Sesion</button>
           </div>
 
           {/* Panel Derecho */}
@@ -73,7 +76,7 @@ export const Sesion = () => {
                   <div>
                     <h3>{orden.producto}</h3>
                     <p>Estado: {orden.estado_entrega}</p>
-                    <button className="orden-butt"> <Link to = {"/OrderDetail/"+orden.id} >Ver Detalle</Link> </button>
+                    <button className="orden-butt" onClick={()=>navigate("/OrderDetail/"+orden.id)}>Ver detalle</button>
                   </div>
                 </div>
               ))}

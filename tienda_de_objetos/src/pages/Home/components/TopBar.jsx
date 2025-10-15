@@ -1,38 +1,51 @@
-import { Outlet, NavLink, useParams } from "react-router-dom";
-import "./topbar.css"
-
+import { Outlet, NavLink } from "react-router-dom";
+import "./topbar.css";
+import { useEffect, useState } from "react";
 
 export const TopBar = () => {
-    const {nombre} = useParams()
-    
-    return (
+  const [nombre, setNombre] = useState("");
+
+  useEffect(() => {
+    setNombre(localStorage.getItem("nombre") || "");
+  }, []);
+
+  return (
     <>
-    {/*Nombre undifned*/ }
-    {!nombre ? ( 
-      <div className="top-bar">
-        <input placeholder="buscador de productos"></input>
-        <nav className="nav">
-          <NavLink to="Carrito">Carrito de Compras</NavLink>
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/Producto">Producto</NavLink>
-          <NavLink to="/Login">Iniciar Sesión</NavLink>
-        </nav>
-      </div>
-    ):(
-      <div className="top-bar">
-        <input placeholder="buscador de productos"></input>
-        <nav className="nav">
-          <NavLink to="Carrito">Carrito de Compras</NavLink>
-          <NavLink to="/">Home</NavLink>
-          <NavLink to={"/Producto"+"/"+nombre}>Producto</NavLink>
-          <NavLink>{nombre}</NavLink>
-          <NavLink to={"/Sesion"+"/"+nombre}>Mi Cuenta</NavLink>
-        </nav>
-      </div>
-    )}
-    <Outlet />
+      {nombre === "" ? (
+        <div className="top-bar">
+          <button>Buscar</button>
+          <input placeholder="buscador de productos" />
+          <nav className="nav">
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/Producto">Producto</NavLink>
+            <NavLink to="/Login">Iniciar Sesión</NavLink>
+          </nav>
+        </div>
+      ) : nombre === "Admin" ? (
+        <div className="top-bar">
+          <button>Buscar</button>
+          <input placeholder="buscador de productos" />
+          <nav className="nav">
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/Producto">Producto</NavLink>
+            <NavLink to="/AdminDashBoard">Mi Cuenta: {nombre}</NavLink>
+          </nav>
+        </div>
+      ) : (
+        <div className="top-bar">
+          <button>Buscar</button>
+          <input placeholder="buscador de productos" />
+          <nav className="nav">
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/Producto">Producto</NavLink>
+            <NavLink to="/Sesion">Mi Cuenta: {nombre}</NavLink>
+          </nav>
+        </div>
+      )}
+
+      <Outlet />
     </>
   );
 };
 
-export default TopBar
+export default TopBar;

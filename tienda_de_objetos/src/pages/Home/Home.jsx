@@ -1,128 +1,169 @@
 import { imagesData } from "../../data/imagesData"
 import { imagesData_2 } from "../../data/images_2Data"
 import "../Home/home.css"
-//  import Banner from "../../banner_image/banner.jpg";
 import { TopBar } from "./components/TopBar"
 import { Footer } from "./components/Footer"
 
+// Componente principal de la página de inicio (Home)
+export const Home = () => {
 
-export const Home = () =>{
+    // Definición de todas las categorías disponibles.
+    const lista_categorias_completas = [
+        "Armas Encantadas", 
+        "Pociones y Elixires Místicos", 
+        "Grimorios Antiguos", 
+        "Cristales Elementales", 
+        "Reliquias y Artefactos Legendarios", 
+        "Armaduras y Escudos"
+    ];
+    
+    // Calcular ventas totales y encuentra la imagen representativa por cada categoría.
+    const ventasPorCategoria = lista_categorias_completas.map(categoriaActual => {
+        
+        // Obtener productos de la categoría actual.
+        const productosDeCategoria = imagesData.filter(producto => producto.categoria === categoriaActual);
 
-        
-    // 3 productos por Categorías Mas Vendidos
-    let lista_categorias = ["Armas Encantadas", "Pociones y Elixires Místicos", "Grimorios Antiguos", "Cristales Elementales", "Reliquias y Artefactos Legendarios", "Armaduras y Escudos"];
-    let lista_ventas = [0,0,0,0,0,0];
+        // Sumar las ventas totales.
+        const ventasTotales = productosDeCategoria.reduce((sumaAcumulada, producto) => {
+            return sumaAcumulada + producto.ventas;
+        }, 0); 
 
-    const imagenes = imagesData.map((imagen)=>{
-        for (let index = 0; index < 6; index++) {
-            if(imagen.categoria === lista_categorias[index]){
-                lista_ventas[index] = imagen.ventas + lista_ventas[index];
-            }            
-        }
-    })
+        // Ordenar para encontrar el producto más vendido y usar su imagen.
+        productosDeCategoria.sort((a, b) => b.ventas - a.ventas); 
+        
+        const imagenRepresentativa = productosDeCategoria.length > 0 
+            ? productosDeCategoria[0].imagen 
+            : ""; 
 
-    //------> Se crea un Array de objetos
-    const ventasPorCategoria = lista_categorias.map((cat, i) => ({
-    categoria: cat,
-    ventas: lista_ventas[i]
-    }));
+        return {
+            categoria: categoriaActual,
+            ventas: ventasTotales,
+            imagen: imagenRepresentativa 
+        };
+    });
 
-    ventasPorCategoria.sort((a, b) => b.ventas - a.ventas);
-    const top3Categorias = ventasPorCategoria.slice(0, 3);
+    // Ordenar todas las categorías por ventas y obtener el top 3.
+    ventasPorCategoria.sort((a, b) => b.ventas - a.ventas);
+    const top3Categorias = ventasPorCategoria.slice(0, 3);
 
-
-    // 12 productos de noviembre Mas Vendidos
-    const productosNoviembre = imagesData.filter(imagen => imagen.mes === "Noviembre");
-    productosNoviembre.sort((a, b) => b.ventas - a.ventas);
-    const primeros12 = productosNoviembre.slice(0, 12);
-
-    console.log("Cantidad de ventas totales por producto: "+ top3Categorias);
-    console.log("Cantidad de objetos: " + primeros12.length);
-
-    // 3 nuevas categorías
-    const categoriasNuevas = ["Cristales Elementales", "Reliquias y Artefactos Legendarios", "Grimorios Antiguos"];
-
-
-return (
-        <>
-            <TopBar />
-
-            <section className="seccion_titulo">
-                <h1>Bienvenido a Nuestra Tienda</h1>
-                <p>Descubre los productos más destacados y aprovecha nuestras ofertas del mes.</p>
-            </section>
-
-            {/*Seccion de 3 productos */}
-            <section className="seccion_producto">
-                <h2>Los 3 Productos Más Destacados</h2>
-                <div className="productos-flex">
-                    {top3Categorias.map((imagen) => (
-                        <article className="producto-card" key={imagen.id}>
-                            <img src={imagen.imagen} alt={imagen.categoria} />
-                            <h3>{imagen.categoria}</h3>
-                        </article>
-                    ))}
-                </div>
-            </section>
-
-            {/*Seccion de 12 productos */}
-            <section className="seccion_producto">
-                <h2>Los 12 Productos Más Vendidos del Mes</h2>
-                <div className="productos-scroll">
-                    {primeros12.map((imagen) => (
-                        <article className="producto-card" key={imagen.id}>
-                            <img src={imagen.imagen} alt={imagen.nombre} />
-                            <h3>{imagen.nombre}</h3>
-                            <p>{imagen.descripcion}</p>
-                            <span className="precio">S/. {imagen.precio}</span>
-                            </article>
-                    ))}
-                </div>
-            </section>
+    // Filtrar por mes de "Noviembre".
+    const productosNoviembre = imagesData.filter(imagen => imagen.mes === "Noviembre");
+    
+    // Ordenar por ventas (descendente).
+    productosNoviembre.sort((a, b) => b.ventas - a.ventas);
+    
+    // Tomar los primeros 12.
+    const primeros12_masVendidos = productosNoviembre.slice(0, 12);
+    
+    
+    // Lista de categorías a destacar como "Nuevas".
+    const categoriasNuevas = ["Cristales Elementales", "Reliquias y Artefactos Legendarios", "Grimorios Antiguos"];
 
 
-            {/* Sección inferior */}
-            <section className="seccion_producto">
+    return (
+        <>
+            <TopBar />
 
-                {/* Banner*/}
-                <div className="banner">
-                    <img src="" alt="Banner Publicitario" style={{ maxWidth: "100%", height: "30%" }} />
-                </div>
+            {/* SECCIÓN DE BIENVENIDA Y TÍTULO PRINCIPAL */}
+            <section className="seccion_titulo">
+                <h1>Bienvenido a Nuestra Tienda Mágica</h1>
+                <p>Descubre los productos más destacados y aprovecha nuestras ofertas del mes.</p>
+            </section>
 
-                {/* Categorías nuevas */}
-                <div className="productos-nuevos">
-                    <h2>Categorías Nuevas</h2>
-                    <div className="productos-flex wrap">
-                        {categoriasNuevas.map((cat) => (
-                            <article className="producto-card" key={cat.id}>
-                                <h3>{cat}</h3>
-                                <p>Explora los mejores productos de {cat}</p>
-                            </article>
-                        ))}
-                    </div>
-                </div>
+            <hr />
 
-                {/* 6 productos nuevos */}
-                <div className="productos-nuevos">
-                    <h2>Productos Nuevos</h2>
-                    <div className="productos-flex wrap">
-                        {imagesData_2.map((imagen_2) => (
-                            <article className="producto-card" key={imagen_2.id}>
-                                <img src={imagen_2.imagen} alt={imagen_2.nombre} />
-                                <h3>{imagen_2.nombre}</h3>
-                                <p>{imagen_2.descripcion}</p>
-                                <span className="precio">S/. {imagen_2.precio}</span>
-                            </article>
-                        ))}
-                    </div>
-                </div>
+            {/* SECCIÓN 1: Las 3 Categorías Más Populares (Top Ventas) */}
+            <section className="seccion_producto">
+                <h2>Las 3 Categorías Más Populares</h2>
+                <div className="productos-flex">
+                    {
+                        top3Categorias.map((categoriaInfo) => (
+                            <article className="producto-card" key={categoriaInfo.categoria}> 
+                                <img src={categoriaInfo.imagen} alt={`Imagen de ${categoriaInfo.categoria}`} /> 
+                                <h3>{categoriaInfo.categoria}</h3>
+                            </article>
+                        ))
+                    }
+                </div>
+            </section>
 
-            </section>
+            <hr />
 
+            {/* SECCIÓN 2: Los 12 Productos Más Vendidos del Mes */}
+            <section className="seccion_producto">
+                <h2>Los 12 Productos Más Vendidos del Mes</h2>
+                <div className="productos-scroll">
+                    {
+                        primeros12_masVendidos.map((producto) => (
+                            <article className="producto-card" key={producto.id}>
+                                <img src={producto.imagen} alt={producto.nombre} />
+                                <h3>{producto.nombre}</h3>
+                                <p>{producto.descripcion}</p>
+                                <span className="precio">S/. {producto.precio}</span>
+                              </article>
+                        ))
+                    }
+                </div>
+            </section>
 
-            <Footer />
-        </>
-    );
+            <hr />
+            
+            {/* SECCIÓN 3: Banner, Categorías Nuevas y Productos Recientes */}
+            <section className="seccion_producto seccion_inferior">
+
+                {/* Banner de Promoción */}
+                <div className="banner">
+                    <a 
+                        href="https://www.tusuperpromo.com/descuento-especial" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        <img
+                            src="https://static.vecteezy.com/system/resources/thumbnails/005/405/595/small/special-offer-sale-banner-besign-discount-label-and-sticker-for-media-promotion-product-free-vector.jpg"
+                            alt="Banner de Descuento Especial"
+                            style={{ width: "100%", height: "auto", borderRadius: "8px", cursor: "pointer", boxShadow: "0 4px 10px rgba(0,0,0,0.2)"}}
+                        />
+                    </a>
+                </div>
+          
+
+                {/* Visualización de Categorías Nuevas */}
+                <div className="productos-nuevos">
+                    <h2>Categorías Nuevas</h2>
+                    <div className="productos-flex wrap">
+                        {
+                            categoriasNuevas.map((cat, index) => (
+                                <article className="producto-card" key={index}>
+                                    <h3>{cat}</h3>
+                                    <p>Explora los mejores productos de {cat}</p>
+                                </article>
+                            ))
+                        }
+                    </div>
+                </div>
+
+                {/* Visualización de 6 Productos Nuevos (imagesData_2) */}
+                <div className="productos-nuevos">
+                    <h2>Productos Recién Agregados</h2>
+                    <div className="productos-flex wrap">
+                        {
+                            imagesData_2.map((imagen_2) => (
+                                <article className="producto-card" key={imagen_2.id}>
+                                    <img src={imagen_2.imagen} alt={imagen_2.nombre} />
+                                    <h3>{imagen_2.nombre}</h3>
+                                    <p>{imagen_2.descripcion}</p>
+                                    <span className="precio">S/. {imagen_2.precio}</span>
+                                </article>
+                            ))
+                        }
+                    </div>
+                </div>
+            </section>
+            
+            {/* Pie de página */}
+            <Footer />
+        </>
+    );
 };
 
 export default Home;

@@ -10,9 +10,8 @@ export const OrderDetail = () => {
   const usuario = usersData.find((orden) => orden.id === parseInt(id));
 
   // Mostrar botón solo si el pedido no está entregado
-  const mostrarBotonCancelar =
-    usuario.estado_entrega.toLowerCase() !== "entregado" &&
-    usuario.estado_entrega.toLowerCase() !== "completado";
+  const mostrarBotonCancelar = usuario.estado_entrega;
+  
 
   const handleCancelar = () => {
     alert(`Pedido #${usuario.id} ha sido cancelado.`);
@@ -41,13 +40,14 @@ export const OrderDetail = () => {
           </div>
 
           <div className="order-buttons">
-            <Link to={`/Sesion/${usuario.nombre_usuario}`} className="orden-butt volver"> Volver </Link>
+            <Link to={`/Sesion`} className="orden-butt volver"> Volver </Link>
 
-            {mostrarBotonCancelar && (
+            {mostrarBotonCancelar !== "entregado" ? (
               <button className="orden-butt cancelar" onClick={handleCancelar}>
                 Cancelar Pedido
               </button>
-            )}
+            ):(<>
+            </>)}
           </div>
         </div>
       </div>

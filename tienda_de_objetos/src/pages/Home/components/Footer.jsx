@@ -27,7 +27,7 @@ export const Footer = () => {
         </div>
 
         <div className="footer-border">
-            <p>2024 [Nombre de la tienda]. Todos los derechos reservados</p>
+            <p>2024 ShopStar. Todos los derechos reservados</p>
             <br></br>
         </div>
 

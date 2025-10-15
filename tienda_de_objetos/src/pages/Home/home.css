@@ -1,17 +1,3 @@
-/* Banner de sección */ 
-
-.banner {
-    width: 100%;
-    display: flex;
-    margin: 2rem 0;
-}
-
-.banner img {
-    width: 100%;
-    max-width: 1200px;
-}
-
-
 /* seccion_titulo */
 .seccion_titulo {
     padding: 5rem 2rem;

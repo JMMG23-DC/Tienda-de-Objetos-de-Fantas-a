@@ -5,7 +5,7 @@ import { Footer } from "../Home/components/Footer"
 import "../Login/login.css"
 
 export const Login = () => {
-  const [nombre_registro, setNombre] = useState(""); // nuevo campo
+  const [nombre, setNombre] = useState(""); // nuevo campo
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,19 +14,13 @@ export const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!nombre_registro || !email || !password) {
-      setError("Por favor completa todos los campos");
+    if ( nombre != "" || email != "" || password != "") {
+      navigate("/");
+      localStorage.setItem("nombre",nombre)
       return;
     }
-
-    // Aquí iría la lógica de autenticación con tu backend
-    console.log("Nombre:", nombre_registro);
-    console.log("Email:", email);
-    console.log("Password:", password);
-    setError("");
-
-    // Redirigir a la página principal o a "Mi cuenta"
-    navigate("/Home/"+nombre_registro);
+    
+    setError("Por favor completa todos los campos");
   };
 
   return (
@@ -42,7 +36,7 @@ export const Login = () => {
             <input
               type="text"
               placeholder="  Nombre"
-              value={nombre_registro}
+              value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
             <input
