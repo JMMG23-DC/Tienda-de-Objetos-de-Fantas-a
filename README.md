@@ -24,15 +24,24 @@ git pull origin main
 
 2. Subir tu repositorio local a Github REMOTO
 
-<<<<<<< HEAD
 git push origin main
 
-3.revertir algun merge del _pricipal
+========================================================================
 
-* git checkout main 
-* git pull origin main   # traer lo último de GitHub
-* git revert -m 1 <id-del-merge>
-* git push origin main
-=======
-git push origin main
->>>>>>> Adrian
+
+1. COMANDOS
+C:\Users\user\Desktop\Mysql\pgsql\bin\pg_ctl.exe start -D
+
+C:\...\pg_ctl.exe start -D "C:\Users\user\Desktop\Mysql\pgsql\data"
+
+
+ir a al arhcivo .config y cambiar el puerto a 5432
+
+node index.js
+
+5. EN index.js eliminar el "//" para crear las tablas, una vez creado, volver a poner "//". MIRA LA FLECHA
+
+app.listen(PORT, async () => {
+  console.log(` Servidor funcionando en el puerto: ${PORT}`);
+  // await sincronizarBD(); <-----------------------------------------------------
+});

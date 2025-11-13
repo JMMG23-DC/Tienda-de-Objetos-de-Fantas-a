@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Footer } from "../Home/components/Footer";
 import "../Login/login.css";
 
@@ -9,31 +9,67 @@ export const ChangePassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  
   const navigate = useNavigate();
-  const [nombre, setNombre] = useState(() => localStorage.getItem("nombre"));
 
-  const handleSubmit = (e) => {
+  // Obtenemos el ID del usuario logueado desde localStorage
+  const usuario_id = localStorage.getItem("usuario_id");
+
+  // La función debe ser 'async' para usar 'await' con fetch
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setMessage("");
 
+    // --- Validación del Frontend ---
     if (!currentPassword || !newPassword || !confirmPassword) {
       setError("Por favor completa todos los campos");
-      setMessage("");
       return;
     }
 
     if (newPassword !== confirmPassword) {
       setError("Las nuevas contraseñas no coinciden");
-      setMessage("");
       return;
     }
 
-    setError("");
-    setMessage("¡Contraseña actualizada con éxito!");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    // Si no está logueado, no puede cambiar la contraseña
+    if (!usuario_id) {
+      setError("No se ha iniciado sesión. No se puede cambiar la contraseña.");
+      navigate("/login");
+      return;
+    }
 
+    // --- Lógica del Backend (fetch) ---
+    try {
+      const response = await fetch("http://localhost:4000/change-password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_usuario: usuario_id, // Enviamos el ID del usuario
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Si hay un error (ej: 400), usamos el mensaje del backend
+        // (ej: "La contraseña actual es incorrecta.")
+        throw new Error(data.error || "No se pudo actualizar la contraseña.");
+      }
+
+      // Si todo sale bien
+      setMessage(data.message); // "¡Contraseña actualizada con éxito!"
+      setError("");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+    } catch (error) {
+      // Capturamos el error (ej: "La contraseña actual es incorrecta")
+      setError(error.message);
+      setMessage("");
+    }
   };
 
   return (
@@ -68,7 +104,8 @@ export const ChangePassword = () => {
           </form>
 
           <div className="login-links">
-            <NavLink to={`/Sesion`}>Volver a Mi Cuenta</NavLink>
+            {/* Usamos 'to="/Sesion"' para volver al perfil */}
+            <NavLink to="/Sesion">Volver a Mi Cuenta</NavLink>
           </div>
         </div>
       </section>
