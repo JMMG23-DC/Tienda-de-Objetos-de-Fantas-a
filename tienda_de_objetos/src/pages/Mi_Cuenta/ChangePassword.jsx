@@ -12,7 +12,7 @@ export const ChangePassword = () => {
   const navigate = useNavigate();
 
   // Obtenemos el ID del usuario logueado desde localStorage
-  const usuario_id = localStorage.getItem("usuario_id");
+  const nombreUsuario = localStorage.getItem("nombre");
 
   // La función debe ser 'async' para usar 'await' con fetch
   const handleSubmit = async (e) => {
@@ -31,20 +31,17 @@ export const ChangePassword = () => {
       return;
     }
 
-    // Si no está logueado, no puede cambiar la contraseña
-    if (!usuario_id) {
-      setError("No se ha iniciado sesión. No se puede cambiar la contraseña.");
-      navigate("/login");
-      return;
+    if(!nombreUsuario){
+      return
     }
 
     // --- Lógica del Backend (fetch) ---
     try {
-      const response = await fetch("http://localhost:4000/change-password", {
+      const response = await fetch("http://localhost:3000/change-password", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id_usuario: usuario_id, // Enviamos el ID del usuario
+          nombre: nombreUsuario, // Enviamos el ID del usuario
           currentPassword: currentPassword,
           newPassword: newPassword,
         }),

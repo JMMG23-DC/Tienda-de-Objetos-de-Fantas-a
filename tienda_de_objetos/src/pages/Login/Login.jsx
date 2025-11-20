@@ -5,6 +5,7 @@ import { Footer } from "../Home/components/Footer";
 import "../Login/login.css";
 
 export const Login = () => {
+  
   // Quitamos 'nombre', no es necesario para el login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +24,7 @@ export const Login = () => {
 
     try {
       // 1. Llamar a la nueva ruta /login del backend
-      const response = await fetch("http://localhost:4000/login", {
+      const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Enviamos 'password' como 'contrasena'

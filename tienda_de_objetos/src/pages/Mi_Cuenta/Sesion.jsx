@@ -27,7 +27,7 @@ export const Sesion = () => {
         setLoading(true);
         // --- ¡CAMBIO IMPORTANTE! ---
         // Llamamos a la ruta del backend que usa el NOMBRE
-        const response = await fetch(`http://localhost:4000/mis-ordenes/${nombre}`);
+        const response = await fetch(`http://localhost:3000/mis-ordenes/${nombre}`);
         
         if (!response.ok) {
           throw new Error("Error al cargar las órdenes");

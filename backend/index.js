@@ -11,7 +11,7 @@ import { Orden } from "./modelos/Orden.js";
 import { OrdenProducto } from "./modelos/OrdenProducto.js";
 
 const app = express();
-const PORT = 4000; // Puerto del Servidor (API)
+const PORT = 3000; // Puerto del Servidor (API)
 
 app.use(express.json());
 app.use(cors());
@@ -147,26 +147,27 @@ app.get("/mis-ordenes/:nombre", async (req, res) => {
 // CAMBIAR CONTRASEÑA
 app.put("/change-password", async (req, res) => {
   try {
-    const { id_usuario, currentPassword, newPassword } = req.body;
+    // 1. Recibimos 'nombre' en lugar de 'id_usuario'
+    const { nombre, currentPassword, newPassword } = req.body;
 
-    if (!id_usuario || !currentPassword || !newPassword) {
+    if (!nombre || !currentPassword || !newPassword) {
       return res.status(400).json({ error: "Faltan datos obligatorios." });
     }
 
-    // 1. Buscar al usuario por su ID
-    const usuario = await User.findByPk(id_usuario);
+    // 2. BUSCAR POR NOMBRE: Usamos 'findOne' en lugar de 'findByPk'
+    // Asegúrate de que en tu base de datos la columna se llame "nombre"
+    const usuario = await User.findOne({ where: { nombre: nombre } });
 
     if (!usuario) {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
-    // 2. Verificar que la contraseña actual sea correcta
-    // (Como no estás hasheando, es una simple comparación)
+    // 3. Verificar que la contraseña actual sea correcta
     if (usuario.contrasena !== currentPassword) {
       return res.status(400).json({ error: "La contraseña actual es incorrecta." });
     }
 
-    // 3. Si es correcta, actualizar a la nueva contraseña
+    // 4. Actualizar
     usuario.contrasena = newPassword;
     await usuario.save();
 
@@ -177,7 +178,6 @@ app.put("/change-password", async (req, res) => {
     res.status(500).json({ error: "Error en el servidor." });
   }
 });
-
 
 // ============================================================================================================
 
@@ -399,5 +399,5 @@ async function sincronizarBD() {
 // Iniciar servidor (Esta parte ya la tienes)
 app.listen(PORT, async () => {
   console.log(` Servidor funcionando en el puerto: ${PORT}`);
-  // await sincronizarBD();
+  await sincronizarBD();
 });
