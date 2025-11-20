@@ -1,49 +1,90 @@
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
-
-const mockUsers = [
-  { id: 1, nombre: "Ana", apellido: "Torres", correo: "ana.torres@gmail.com", activo: true },
-  { id: 2, nombre: "Luis", apellido: "Doig", correo: "doigluis@gmail.com", activo: false },
-  { id: 3, nombre: "Maria", apellido: "Rojas", correo: "marojas@gmail.com", activo: true },
-  { id: 4, nombre: "Carlos", apellido: "Lazo", correo: "clazo@hotmail.com", activo: false },
-  { id: 5, nombre: "Sofia", apellido: "Lopez", correo: "soflopez@hotmail.com", activo: true },
-];
 
 export default function UserDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
-  const user = useMemo(() => mockUsers.find(u => u.id === Number(id)), [id]);
-  if (!user) return <div>No se encontró el usuario.</div>;
+  // Cargar la información completa del usuario y sus órdenes
+  useEffect(() => {
+    fetch(`http://localhost:4000/admin/usuarios/${id}`)
+      .then((res) => res.json())
+      .then((data) => setUser(data))
+      .catch((err) => console.error("Error:", err));
+  }, [id]);
 
-  // Simulación de órdenes del usuario (máx 10)
-  const orders = Array.from({ length: Math.min(10, user.id + 3) }, (_, i) => ({
-    id: i + 1,
-    date: `2025-09-${(i % 30) + 1}`,
-    total: (Math.random() * 100 + 20).toFixed(2),
-    items: Math.floor(Math.random() * 5) + 1,
-  }));
+  if (!user) return <div style={{ padding: "2rem", textAlign: "center" }}>Cargando datos...</div>;
 
   return (
-    <div style={{ maxWidth: 400, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
-      <h3>Detalle de usuario</h3>
-      <p><b>ID:</b> {user.id}</p>
-      <p><b>Nombre:</b> {user.nombre}</p>
-      <p><b>Apellido:</b> {user.apellido}</p>
-      <p><b>Correo:</b> {user.correo}</p>
-      <p><b>Estado:</b> {user.activo ? "Activo" : "Desactivado"}</p>
+    <div style={{ maxWidth: "700px", margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+      <button onClick={() => navigate("/UserList")} style={{ marginBottom: "1rem", cursor: "pointer" }}>
+        &larr; Volver a la lista
+      </button>
 
-      <h4>Órdenes recientes</h4>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {orders.map(order => (
-          <li key={order.id} style={{ padding: "0.5rem 0", borderBottom: "1px solid #eee" }}>
-            <b>Orden #{order.id}</b> - {order.date} - {order.items} artículo(s) - 
-            <span style={{ color: "#2a7" }}> ${order.total}</span>
-          </li>
-        ))}
-      </ul>
+      <h2 style={{ borderBottom: "2px solid #eee", paddingBottom: "10px", color: "#333" }}>
+        Detalle de Usuario #{user.user_id}
+      </h2>
 
-      <button onClick={() => navigate(-1)} style={{ marginTop: "1rem" }}>Volver</button>
+      <div style={{ marginBottom: "2rem", lineHeight: "1.6" }}>
+        <p><strong>Nombre:</strong> {user.nombre}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+        <p>
+          <strong>Estado:</strong>{" "}
+          <span style={{ color: user.activo ? "green" : "red", fontWeight: "bold" }}>
+            {user.activo ? "Activo" : "Inactivo"}
+          </span>
+        </p>
+      </div>
+
+      <h3>Historial de Órdenes ({user.ordens ? user.ordens.length : 0})</h3>
+      
+      {user.ordens && user.ordens.length > 0 ? (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {/* Limitamos a las últimas 10 órdenes como pide el enunciado */}
+          {user.ordens.slice(0, 10).map((orden) => (
+            <li key={orden.id_orden} style={{
+              background: "#f9f9f9",
+              border: "1px solid #eee",
+              margin: "10px 0",
+              padding: "15px",
+              borderRadius: "8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <div>
+                <strong>Orden #{orden.id_orden}</strong>
+                <div style={{ fontSize: "0.9rem", color: "#666" }}>
+                  Fecha: {new Date(orden.fecha_orden).toLocaleDateString()}
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={{
+                  display: "inline-block",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  fontSize: "0.85rem",
+                  background: orden.estado === "Cancelado" ? "#ffebee" : "#e3f2fd",
+                  color: orden.estado === "Cancelado" ? "#c62828" : "#1565c0",
+                  fontWeight: "bold"
+                }}>
+                  {orden.estado}
+                </span>
+                <br />
+                <button 
+                  onClick={() => navigate(`/OrderDetailUser/${orden.id_orden}`)}
+                  style={{ marginTop: "5px", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline", border: "none", background: "transparent", color: "#333" }}
+                >
+                  Ver Orden &rarr;
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p style={{ fontStyle: "italic", color: "#888" }}>Este usuario no ha realizado ninguna orden aún.</p>
+      )}
     </div>
   );
 }

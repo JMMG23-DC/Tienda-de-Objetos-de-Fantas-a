@@ -396,7 +396,134 @@ async function sincronizarBD() {
   }
 }
 
-// Iniciar servidor (Esta parte ya la tienes)
+// ==========================================================================
+//  RUTAS MATIAS: GESTIÓN DE USUARIOS Y ÓRDENES
+// ==========================================================================
+
+// 1. LISTAR TODOS LOS USUARIOS
+app.get("/admin/usuarios", async (req, res) => {
+  try {
+    const usuarios = await User.findAll({
+      order: [['user_id', 'ASC']]
+    });
+    res.json(usuarios);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+});
+
+// 2. DETALLE DE USUARIO
+app.get("/admin/usuarios/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await User.findByPk(id, {
+      include: [{ model: Orden }]
+    });
+
+    if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+    res.json(usuario);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener el usuario" });
+  }
+});
+
+// 3. ACTIVAR / DESACTIVAR USUARIO
+app.put("/admin/usuarios/:id/estado", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await User.findByPk(id);
+
+    if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    // Invertimos el valor booleano de 'activo'
+    usuario.activo = !usuario.activo;
+    await usuario.save();
+
+    res.json({ message: "Estado actualizado", activo: usuario.activo });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al cambiar estado" });
+  }
+});
+
+// 4. LISTAR TODAS LAS ÓRDENES
+app.get("/admin/ordenes", async (req, res) => {
+  try {
+    const ordenes = await Orden.findAll({
+      include: [
+        { model: User, attributes: ['nombre', 'email'] },
+        { 
+          model: Producto, 
+          through: { attributes: ['subtotal'] }
+        }
+      ],
+      order: [['fecha_orden', 'DESC']]
+    });
+
+    const ordenesFormateadas = ordenes.map(orden => {
+      const totalOrden = orden.productos.reduce((sum, prod) => sum + prod.orden_producto.subtotal, 0);
+      
+      return {
+        id_orden: orden.id_orden,
+        fecha: orden.fecha_orden,
+        estado: orden.estado,
+        usuario: orden.user ? orden.user.nombre : "Usuario Eliminado",
+        total: totalOrden
+      };
+    });
+
+    res.json(ordenesFormateadas);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al listar órdenes" });
+  }
+});
+
+// 5. DETALLE DE UNA ORDEN
+app.get("/admin/ordenes/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const orden = await Orden.findByPk(id, {
+      include: [
+        { model: User, attributes: ['nombre', 'email'] },
+        { model: Pago },
+        { model: Envio },
+        { 
+          model: Producto,
+          through: { attributes: ['cantidad', 'subtotal'] }
+        }
+      ]
+    });
+
+    if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
+    res.json(orden);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener detalle de orden" });
+  }
+});
+
+// 6. CANCELAR ORDEN
+app.put("/admin/ordenes/:id/cancelar", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const orden = await Orden.findByPk(id);
+
+    if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
+
+    orden.estado = "Cancelado";
+    await orden.save();
+
+    res.json({ message: "Orden cancelada correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al cancelar orden" });
+  }
+});
+
+// Iniciar servidor
 app.listen(PORT, async () => {
   console.log(` Servidor funcionando en el puerto: ${PORT}`);
   // await sincronizarBD();

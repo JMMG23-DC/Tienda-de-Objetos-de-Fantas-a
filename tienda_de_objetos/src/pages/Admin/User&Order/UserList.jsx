@@ -1,82 +1,126 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const mockUsers = [
-  { id: 1, nombre: "Ana", apellido: "Torres", correo: "ana.torres@gmail.com", activo: true },
-  { id: 2, nombre: "Luis", apellido: "Doig", correo: "doigluis@gmail.com", activo: false },
-  { id: 3, nombre: "Maria", apellido: "Rojas", correo: "marojas@gmail.com", activo: true },
-  { id: 4, nombre: "Carlos", apellido: "Lazo", correo: "clazo@hotmail.com", activo: false },
-  { id: 5, nombre: "Sofia", apellido: "Lopez", correo: "soflopez@hotmail.com", activo: true },
-];
-
-export default function UserList({ onUserDetail }) {
+export default function UserList() {
   const navigate = useNavigate();
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState([]);
   const [filter, setFilter] = useState("");
 
-  function toggleEstado(id) {
-    setUsers(users.map(u => u.id === id ? { ...u, activo: !u.activo } : u));
-  }
+  // 1. Cargar usuarios reales desde la BD
+  useEffect(() => {
+    fetch("http://localhost:4000/admin/usuarios")
+      .then((res) => res.json())
+      .then((data) => setUsers(data))
+      .catch((err) => console.error("Error cargando usuarios:", err));
+  }, []);
 
-  const filtered = users.filter(u =>
-    u.id.toString().includes(filter) ||
+  // 2. Manejar la activación/desactivación
+  const toggleEstado = async (id, estadoActual) => {
+    const accion = estadoActual ? "desactivar" : "activar";
+    if (!window.confirm(`¿Estás seguro de que deseas ${accion} a este usuario?`)) return;
+
+    try {
+      const response = await fetch(`http://localhost:4000/admin/usuarios/${id}/estado`, {
+        method: "PUT",
+      });
+
+      if (response.ok) {
+        // Actualizamos la lista localmente para ver el cambio inmediato
+        setUsers(users.map((u) => 
+          u.user_id === id ? { ...u, activo: !u.activo } : u
+        ));
+      } else {
+        alert("Error al actualizar el estado en el servidor.");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // 3. Filtrado por nombre o correo
+  const filtered = users.filter((u) =>
     u.nombre.toLowerCase().includes(filter.toLowerCase()) ||
-    u.apellido.toLowerCase().includes(filter.toLowerCase())
+    u.email.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
-      <h2>Lista de usuarios registrados</h2>
+    <div style={{ maxWidth: "900px", margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+      <h2>Gestión de Usuarios Registrados</h2>
+      
+      <button onClick={() => navigate("/AdminDashboard")} style={{ marginBottom: "1rem", cursor: "pointer" }}>
+        &larr; Volver al Dashboard
+      </button>
+
       <input
         type="text"
-        placeholder="Filtrar por ID, nombre o apellido"
+        placeholder="Buscar por nombre o correo..."
         value={filter}
-        onChange={e => setFilter(e.target.value)}
-        style={{ marginBottom: "1rem", width: "100%" }}
+        onChange={(e) => setFilter(e.target.value)}
+        style={{ width: "100%", padding: "10px", marginBottom: "1rem", borderRadius: "4px", border: "1px solid #ccc" }}
       />
+
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
-          <tr style={{ background: "#f7f7f7" }}>
-            <th>ID</th>
+          <tr style={{ background: "#f4f4f4", textAlign: "left", borderBottom: "2px solid #ddd" }}>
+            <th style={{ padding: "10px" }}>ID</th>
             <th>Nombre</th>
-            <th>Apellido</th>
             <th>Correo</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {filtered.map(u => (
-            <tr key={u.id}>
-              <td>{u.id}</td>
+          {filtered.map((u) => (
+            <tr key={u.user_id} style={{ borderBottom: "1px solid #eee" }}>
+              <td style={{ padding: "10px" }}>{u.user_id}</td>
               <td>{u.nombre}</td>
-              <td>{u.apellido}</td>
-              <td>{u.correo}</td>
+              <td>{u.email}</td>
+              <td>
+                <span style={{
+                  color: u.activo ? "green" : "red",
+                  fontWeight: "bold",
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                  background: u.activo ? "#e8f5e9" : "#ffebee"
+                }}>
+                  {u.activo ? "Activo" : "Inactivo"}
+                </span>
+              </td>
               <td>
                 <button
-                  onClick={() => toggleEstado(u.id)}
+                  onClick={() => toggleEstado(u.user_id, u.activo)}
                   style={{
-                    padding: "0.2rem 0.5rem",
+                    marginRight: "10px",
+                    padding: "5px 10px",
                     border: "none",
-                    borderRadius: 4,
-                    background: u.activo ? "green" : "red",
+                    borderRadius: "4px",
+                    background: u.activo ? "#e53935" : "#43a047",
                     color: "#fff",
                     cursor: "pointer"
                   }}
                 >
-                  {u.activo ? "Activo" : "Desactivado"}
+                  {u.activo ? "Desactivar" : "Activar"}
                 </button>
-              </td>
-              <td>
                 <button
-                  onClick={() => navigate(`/UserDetail/${u.id}`)}
-                  style={{ marginRight: "0.5rem" }}
+                  onClick={() => navigate(`/UserDetail/${u.user_id}`)}
+                  style={{
+                    padding: "5px 10px",
+                    border: "1px solid #333",
+                    borderRadius: "4px",
+                    background: "white",
+                    cursor: "pointer"
+                  }}
                 >
-                  Ver detalle
+                  Ver Detalle
                 </button>
               </td>
             </tr>
           ))}
+          {filtered.length === 0 && (
+            <tr>
+              <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>No se encontraron usuarios.</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
