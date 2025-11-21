@@ -8,3 +8,15 @@ Merge_con_Main.bat
 >>>>>>> Adrian
 
 .env
+
+# Ignore Node modules and locks
+/node_modules
+/package-lock.json
+/backend/node_modules
+/backend/package-lock.json
+# Local editor and backend backups
+.vscode/
+backend/package.json.bak
+backend/package.json.corrupt.bak
+backend/dir-backend-before-fix.txt
+.env
