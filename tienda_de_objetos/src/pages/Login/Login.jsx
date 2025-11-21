@@ -24,7 +24,7 @@ export const Login = () => {
 
     try {
       // 1. Llamar a la nueva ruta /login del backend
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch("http://3.131.85.192:3000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Enviamos 'password' como 'contrasena'

@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 
 // Nombre de BD, Nombre usuarios, Contraseña de Usuario
-export const sequelize = new Sequelize("bdprograweb", "postgres", "admin1234", { // <--- ¿Seguro que lleva el 4 final?
+export const sequelize = new Sequelize("bdprograweb", "postgres", "admin1234", { 
   host: "bdprograweb.c7e664ucw625.us-east-2.rds.amazonaws.com",
   dialect: "postgres",
   port: 5432,

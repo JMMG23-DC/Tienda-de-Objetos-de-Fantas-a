@@ -399,5 +399,5 @@ async function sincronizarBD() {
 // Iniciar servidor (Esta parte ya la tienes)
 app.listen(PORT, async () => {
   console.log(` Servidor funcionando en el puerto: ${PORT}`);
-  await sincronizarBD();
+  // await sincronizarBD();
 });
