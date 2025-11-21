@@ -20,3 +20,12 @@ backend/package.json.bak
 backend/package.json.corrupt.bak
 backend/dir-backend-before-fix.txt
 .env
+
+# Backend env and local files
+backend/.env
+/backend/node_modules
+backend/backups
+# Root node
+/node_modules
+/package-lock.json
+backend/package-lock.json

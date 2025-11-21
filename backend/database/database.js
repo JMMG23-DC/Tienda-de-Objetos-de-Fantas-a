@@ -1,20 +1,21 @@
+﻿import "dotenv/config";
 import { Sequelize } from "sequelize";
 
-// Nombre de BD, Nombre usuarios, Contraseña de Usuario
-export const sequelize = new Sequelize("bdprograweb", "postgres", "admin1234", { // <--- ¿Seguro que lleva el 4 final?
-  host: "bdprograweb.c7e664ucw625.us-east-2.rds.amazonaws.com",
-  dialect: "postgres",
-  port: 5432,
-  dialectOptions: {
+// Configuración de Sequelize usando variables de entorno
+export const sequelize = new Sequelize(
+  process.env.DB_NAME || "bdprograweb",
+  process.env.DB_USER || "postgres",
+  process.env.DB_PASS || "admin1234",
+  {
+    host: process.env.DB_HOST || "bdprograweb.c7e664ucw625.us-east-2.rds.amazonaws.com",
+    dialect: "postgres",
+    port: Number(process.env.DB_PORT || 5432),
+    dialectOptions: {
       ssl: {
-          require: true,
-          rejectUnauthorized: false // Esto evita errores de certificado con AWS
+        require: process.env.DB_SSL === "true" || true,
+        rejectUnauthorized: false
       }
-  },
-  logging: false // Opcional: para que no llene la consola de texto
-});
-
-// npm install sequelize pg
-// npm install cors
-// npm install express
-
+    },
+    logging: false
+  }
+);
