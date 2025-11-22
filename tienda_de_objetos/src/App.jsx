@@ -85,7 +85,7 @@ const App = () => {
          {/*User->Order List*/}
          <Route path="UserList" element={<UserList />}/>
          <Route path="UserDetail" element={<UserDetail />}/>
-         <Route path="OrderList" element={<OrderList />}/>
+         <Route path="/OrderList" element={<OrderList />}/>
          <Route path="/UserDetail/:id" element={<UserDetail />}/>
          <Route path="/OrderDetailUser/:id" element={<OrderDetailUser />}/>
 

@@ -1,58 +1,80 @@
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useMemo, useState, useEffect } from "react";
-
-const mockProducts = Array.from({ length: 23 }, (_, i) => ({
-  id: i + 1,
-  nombre: `Producto${i + 1}`,
-  categoria: `Categoría${(i % 5) + 1}`,
-  precio: ((i + 1) * 10).toFixed(2),
-  activo: true,
-}));
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const product = mockProducts.find((p) => p.id === Number(id));
-  if (!product) return <div>No se encontró el producto.</div>;
+  // Obtener producto
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/products/${id}`);
+        if (!response.ok) throw new Error("Producto no encontrado");
 
-  const display = useMemo(() => ({
-    id: product.id ?? "—",
-    nombre: product.nombre ?? "Sin nombre",
-    categoria: product.categoria ?? "—",
-    precio: product.precio ?? null,
-    activo: product.activo ?? true,
-    imagen: product.imagen ?? null,
-  }), [product]);
+        const data = await response.json();
+        setProduct(data); // ya viene un objeto del backend
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  // Mapeo de datos para mostrar
+  const display = useMemo(() => {
+    if (!product) return null;
+
+    return {
+      id: product.id_producto,
+      nombre: product.nombre,
+      categoria: product.categoria,
+      precio: product.precio,
+      activo: product.activo,
+      imagen: product.imagen_url,
+      descripcion: product.descripcion,
+    };
+  }, [product]);
 
   function fmtPrice(val) {
     const num = Number(val);
-    return val == null || Number.isNaN(num) ? "—" : `$${num.toFixed(2)}`;
+    return isNaN(num) ? "—" : `S/. ${num.toFixed(2)}`;
   }
 
-  const [objectUrl, setObjectUrl] = useState(null);
-  const imgSrc = useMemo(() => {
-    if (!display.imagen) return "/assets/placeholder.png";
-    if (typeof display.imagen === "string") return display.imagen;
-    const url = URL.createObjectURL(display.imagen);
-    setObjectUrl(url);
-    return url;
-  }, [display.imagen]);
-
-  useEffect(() => () => { if (objectUrl) URL.revokeObjectURL(objectUrl); }, [objectUrl]);
+  if (loading) return <div style={{ padding: "2rem", textAlign: "center" }}>Cargando...</div>;
+  if (!display) return <div style={{ padding: "2rem", textAlign: "center" }}>No se encontró el producto.</div>;
 
   return (
     <div style={{ padding: "2rem", maxWidth: 700, margin: "2rem auto", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
-      <button onClick={() => navigate(-1)} style={{ marginBottom: "1rem" }}>Volver</button>
-      <h2 style={{ textAlign: "center" }}>Detalle de producto</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "1rem", alignItems: "start" }}>
-        <img src="/images/botas_viento.png" alt={display.nombre} style={{ width: 200, height: 200, objectFit: "cover", borderRadius: 8, background: "#f3f3f3" }} />
+      <button onClick={() => navigate(-1)} style={{ marginBottom: "1rem", cursor: "pointer", padding: "5px 10px" }}>Volver</button>
+
+      <h2 style={{ textAlign: "center", color: "#333" }}>Detalle de producto</h2>
+
+      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "2rem" }}>
+        <img
+          src={display.imagen || "https://via.placeholder.com/200"}
+          alt={display.nombre}
+          style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: 8 }}
+        />
+
         <div>
+          <p><b>ID:</b> {display.id}</p>
           <p><b>Nombre:</b> {display.nombre}</p>
           <p><b>Categoría:</b> {display.categoria}</p>
-          <p><b>Precio:</b> {fmtPrice(display.precio)}</p>
-          <p><b>Estado:</b> {display.activo ? "Activo" : "Desactivado"}</p>
-          <p><b>ID:</b> {display.id}</p>
+          <p><b>Precio:</b> <span style={{ color: "#e91e63" }}>{fmtPrice(display.precio)}</span></p>
+          <p><b>Estado:</b> <span style={{ color: display.activo ? "green" : "red" }}>{display.activo ? "Activo" : "Desactivado"}</span></p>
+
+          {display.descripcion && (
+            <div style={{ marginTop: "1rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+              <b>Descripción:</b>
+              <p style={{ fontSize: "0.9rem" }}>{display.descripcion}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

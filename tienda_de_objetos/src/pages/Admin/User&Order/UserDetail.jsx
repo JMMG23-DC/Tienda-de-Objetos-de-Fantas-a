@@ -1,49 +1,99 @@
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
-
-const mockUsers = [
-  { id: 1, nombre: "Ana", apellido: "Torres", correo: "ana.torres@gmail.com", activo: true },
-  { id: 2, nombre: "Luis", apellido: "Doig", correo: "doigluis@gmail.com", activo: false },
-  { id: 3, nombre: "Maria", apellido: "Rojas", correo: "marojas@gmail.com", activo: true },
-  { id: 4, nombre: "Carlos", apellido: "Lazo", correo: "clazo@hotmail.com", activo: false },
-  { id: 5, nombre: "Sofia", apellido: "Lopez", correo: "soflopez@hotmail.com", activo: true },
-];
 
 export default function UserDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const user = useMemo(() => mockUsers.find(u => u.id === Number(id)), [id]);
-  if (!user) return <div>No se encontró el usuario.</div>;
+  // Obtener datos del usuario del Backend
+  useEffect(() => {
+    const fetchUserDetail = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/users/${id}`);
+        if (!response.ok) throw new Error("Error al cargar datos del usuario");
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Simulación de órdenes del usuario (máx 10)
-  const orders = Array.from({ length: Math.min(10, user.id + 3) }, (_, i) => ({
-    id: i + 1,
-    date: `2025-09-${(i % 30) + 1}`,
-    total: (Math.random() * 100 + 20).toFixed(2),
-    items: Math.floor(Math.random() * 5) + 1,
-  }));
+    fetchUserDetail();
+  }, [id]);
+
+  if (loading) return <div style={{ padding: "2rem", textAlign: "center" }}>Cargando...</div>;
+  if (!userData) return <div style={{ padding: "2rem", textAlign: "center" }}>Usuario no encontrado.</div>;
+
+  const { usuario, ordenes } = userData;
 
   return (
-    <div style={{ maxWidth: 400, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
-      <h3>Detalle de usuario</h3>
-      <p><b>ID:</b> {user.id}</p>
-      <p><b>Nombre:</b> {user.nombre}</p>
-      <p><b>Apellido:</b> {user.apellido}</p>
-      <p><b>Correo:</b> {user.correo}</p>
-      <p><b>Estado:</b> {user.activo ? "Activo" : "Desactivado"}</p>
+    <>
+      <div style={{ maxWidth: 600, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
+        
+        {/* Título: Detalle de Usuario */}
+        <h3 style={{ color: "#333", borderBottom: "2px solid #eee", paddingBottom: "10px" }}>Detalle de Usuario</h3>
+        
+        <div style={{ lineHeight: "1.8", color: "#555" }}>
+          <p><b>ID:</b> {usuario.id}</p>
+          <p><b>Nombre:</b> {usuario.nombre}</p>
+          <p><b>Correo:</b> {usuario.email}</p>
+          <p>
+            <b>Estado:</b>{" "}
+            <span style={{ 
+              color: usuario.activo ? "green" : "red", 
+              fontWeight: "bold" 
+            }}>
+              {usuario.activo ? "Activo" : "Inactivo"}
+            </span>
+          </p>
+        </div>
 
-      <h4>Órdenes recientes</h4>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {orders.map(order => (
-          <li key={order.id} style={{ padding: "0.5rem 0", borderBottom: "1px solid #eee" }}>
-            <b>Orden #{order.id}</b> - {order.date} - {order.items} artículo(s) - 
-            <span style={{ color: "#2a7" }}> ${order.total}</span>
-          </li>
-        ))}
-      </ul>
+        {/* Subtítulo: Órdenes Recientes */}
+        <h4 style={{ marginTop: "2rem", color: "#444" }}>Órdenes Recientes</h4>
+        
+        {ordenes.length > 0 ? (
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {ordenes.map(order => (
+              <li key={order.id} style={{ padding: "1rem 0", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <b style={{ color: "#007bff" }}>Orden #{order.id}</b>
+                  <div style={{ fontSize: "0.85rem", color: "#777" }}>
+                    {new Date(order.date).toLocaleDateString()} — {order.items} artículo(s)
+                  </div>
+                  <div style={{ fontSize: "0.85rem", fontStyle: "italic" }}>
+                    {order.estado}
+                  </div>
+                </div>
+                <span style={{ color: "#28a745", fontWeight: "bold", fontSize: "1.1rem" }}> 
+                   S/. {order.total}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p style={{ fontStyle: "italic", color: "#999" }}>Sin órdenes recientes.</p>
+        )}
 
-      <button onClick={() => navigate(-1)} style={{ marginTop: "1rem" }}>Volver</button>
-    </div>
+        {/* Botón: Volver */}
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{ 
+            marginTop: "1.5rem", 
+            padding: "10px 20px", 
+            background: "#6c757d", 
+            color: "white", 
+            border: "none", 
+            borderRadius: "4px", 
+            cursor: "pointer" 
+          }}
+        >
+          Volver
+        </button>
+      </div>
+    </>
   );
 }

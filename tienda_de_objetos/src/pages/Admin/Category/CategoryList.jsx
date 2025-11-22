@@ -1,124 +1,114 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Simulación de productos
-const mockProducts = Array.from({ length: 23 }, (_, i) => ({
-  id: i + 1,
-  nombre: `Producto${i + 1}`,
-  categoria: `Categoría${(i % 5) + 1}`,
-  activo: true,
-}));
-
 export default function CategoryList() {
-  const navigate = useNavigate();
-  const [products, setProducts] = useState(mockProducts);
-  const [filter, setFilter] = useState("");
-  const [page, setPage] = useState(1);
-  const pageSize = 5; // Cantidad de categorías por página
+  const [categories, setCategories] = useState([]);
+  const [filter, setFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
+  const navigate = useNavigate();
 
-  // El filtro se usa directamente (sensible a mayúsculas/minúsculas).
-  const filterText = filter; 
+  const fetchCategories = () => {
+    fetch("http://localhost:3000/categories")
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error("ERROR FRONT:", err));
+  };
 
-  // Filtrar productos que coinciden con el texto de búsqueda.
-  const filteredProducts = products.filter(p => {
-    // indexOf() devuelve -1 si la subcadena NO se encuentra.
-    const nombreCoincide = p.nombre.indexOf(filterText) !== -1;
-    const categoriaCoincide = p.categoria.indexOf(filterText) !== -1;
+  useEffect(() => { fetchCategories(); }, []);
 
-    return nombreCoincide || categoriaCoincide;
-  });
+  // EDITAR CATEGORÍA
+  const editCategory = async (cat) => {
+    const nuevoNombre = prompt("Nuevo nombre de categoría:", cat.categoria);
+    if (!nuevoNombre) return;
 
-  const uniqueCategoriesTracker = {};
-  const categories = [];
+    const nuevaDesc = prompt("Nueva descripción:", cat.descripcion_categoria || "");
+    if (nuevaDesc === null) return;
 
-  for (let i = 0; i < filteredProducts.length; i++) {
-    const cat = filteredProducts[i].categoria;
-    // Si la categoría aún no se ha agregado al 'tracker', la agregamos a la lista.
-    if (!uniqueCategoriesTracker[cat]) {
-      uniqueCategoriesTracker[cat] = true; // Marcar como vista
-      categories.push(cat);                 // Agregar a la lista final
-    }
-  }
+    try {
+      const res = await fetch("http://localhost:3000/categories/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categoria: cat.categoria, // nombre original de la categoría
+          nuevoNombre,
+          nuevaDesc
+        })
+      });
 
-  const totalCategories = categories.length;
-  // Calcular el número total de páginas.
-  const totalPages = Math.ceil(totalCategories / pageSize); 
+      if (res.ok) {
+        alert("Categoría actualizada correctamente");
+        fetchCategories(); // recargar datos
+      } else {
+        const err = await res.json();
+        alert("Error al actualizar: " + err.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al actualizar la categoría");
+    }
+  };
 
-  // Determinar el inicio y fin del slice para la página actual.
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = page * pageSize;
-  
-  // Obtener solo las categorías para la página actual.
-  const paginatedCategories = categories.slice(startIndex, endIndex);
+  // FILTRO
+  const filtradas = categories.filter(c =>
+    c.categoria.toLowerCase().includes(filter.toLowerCase()) ||
+    (c.descripcion_categoria?.toLowerCase().includes(filter.toLowerCase()))
+  );
 
-  return (
-    <div style={{ maxWidth: 700, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
-      <h2>Lista de Categorías</h2>
-      <input
-        type="text"
-        placeholder="Filtrar por nombre o categoría"
-        value={filter}
-        onChange={e => { 
-          setFilter(e.target.value); 
-          setPage(1); // Reiniciar la página al cambiar el filtro
-        }}
-        style={{ marginBottom: "1rem", width: "100%" }}
-      />
-      
-      <button type="button" style={{ marginBottom: "1rem", marginRight: "1rem" }} onClick={() => navigate("/NewCategory")}>
-        Registrar nueva Categoria
-      </button>
-      <button type="button" style={{ marginBottom: "1rem" }} onClick={() => navigate("/AdminDashboard")}>
-        Admin Dashboard
-      </button>
+  // PAGINACIÓN
+  const totalPages = Math.ceil(filtradas.length / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedCategories = filtradas.slice(startIndex, startIndex + pageSize);
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ background: "#f7f7f7" }}>
-            <th>#</th>
-            <th>Categoría</th>
-            <th>Productos</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedCategories.map((cat, index) => {
-            // Obtener los productos de esta categoría específica
-            const prods = products.filter(p => p.categoria === cat);
-            // Contar cuántos de esos productos están activos
-            const activos = prods.filter(p => p.activo).length;
-            
-            // Calcular el índice global para la columna #
-            const globalIndex = (page - 1) * pageSize + index + 1;
-            
-            return (
-              <tr key={cat} style={{ background: activos > 0 ? "#fff" : "#fee" }}>
-                <td>{globalIndex}</td>
-                <td>{cat}</td>
-                <td>{`${activos}/${prods.length}`}</td>
-                <td>
-                  {/* CAMBIO AQUÍ: Usamos el nombre de la categoría (cat) en la URL */}
-                  <button onClick={() => navigate(`/CategoryDetail/${cat}`)}>
-                    Ver detalle
-                  </button>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+  return (
+    <div style={{ maxWidth: 1000, margin: "2rem auto", padding: "2rem", background: "#fff", borderRadius: 8, boxShadow: "0 2px 8px #0002" }}>
+      <h2 style={{ marginBottom: "1.5rem" }}>Lista de Categorías</h2>
 
-      {/* Controles de paginación */}
-      <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center", gap: "1rem" }}>
-        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-          Anterior
-        </button>
-        <span>Página {page} de {totalPages}</span>
-        <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-          Siguiente
-        </button>
-      </div>
-    </div>
-  );
+      <input
+        type="text"
+        placeholder="Filtrar por nombre o descripción..."
+        value={filter}
+        onChange={e => { setFilter(e.target.value); setPage(1); }}
+        style={{ width: "100%", padding: "8px", marginBottom: "1.5rem", border: "1px solid #ccc", borderRadius: 4 }}
+      />
+
+      <div style={{ marginBottom: "1rem" }}>
+        <button style={{ marginRight: 10 }} onClick={() => navigate("/NewCategory")}>Registrar nueva Categoría</button>
+        <button onClick={() => navigate("/AdminDashboard")}>Admin Dashboard</button>
+      </div>
+
+      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1rem" }}>
+        <thead>
+          <tr style={{ background: "#f7f7f7", textAlign: "left" }}>
+            <th style={{ padding: 10 }}>#</th>
+            <th style={{ padding: 10 }}>Categoría</th>
+            <th style={{ padding: 10 }}>Descripción</th>
+            <th style={{ padding: 10 }}>Editar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedCategories.map((cat, index) => {
+            const globalIndex = (page - 1) * pageSize + index + 1;
+            return (
+              <tr key={cat.categoria} style={{ borderBottom: "1px solid #eee" }}>
+                <td style={{ padding: 10 }}>{globalIndex}</td>
+                <td style={{ padding: 10 }}>{cat.categoria}</td>
+                <td style={{ padding: 10 }}>{cat.descripcion_categoria || "—"}</td>
+                <td style={{ padding: 10 }}>
+                  <button onClick={() => editCategory(cat)}>Editar</button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div style={{ marginTop: "2rem", textAlign: "center" }}>
+        <button disabled={page === 1} onClick={() => setPage(page - 1)} style={{ marginRight: 10 }}>Anterior</button>
+        <span style={{ margin: "0 1rem" }}>Página {page} de {totalPages}</span>
+        <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Siguiente</button>
+      </div>
+    </div>
+  );
 }

@@ -23,8 +23,8 @@ export const Login = () => {
     }
 
     try {
-      // 1. Llamar a la nueva ruta /login del backend
-      const response = await fetch("http://3.131.85.192:3000/login", {
+      // 1. Llamar a la nueva ruta /login del backend 
+      const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Enviamos 'password' como 'contrasena'
@@ -38,12 +38,9 @@ export const Login = () => {
         throw new Error(data.error || "Error al iniciar sesión.");
       }
 
-      // 3. Si el login es exitoso:
-      console.log("Login exitoso:", data); // data debería ser { id_usuario: 1, nombre: '...', email: '...' }
+      console.log("Login exitoso:", data);
 
-      // --- ¡ESTA ES LA CORRECCIÓN! ---
       localStorage.setItem("nombre", data.nombre);
-      // El backend envía 'id_usuario', no 'user_id'
       localStorage.setItem("usuario_id", data.id_usuario)
 
       navigate("/"); // Redirigir al inicio

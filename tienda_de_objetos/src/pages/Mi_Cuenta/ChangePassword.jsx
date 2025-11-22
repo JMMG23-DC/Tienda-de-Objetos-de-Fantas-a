@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+// Asegúrate de que estas rutas sean correctas en tu estructura de carpetas local
 import { Footer } from "../Home/components/Footer";
 import "../Login/login.css";
 
@@ -11,10 +12,9 @@ export const ChangePassword = () => {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // Obtenemos el ID del usuario logueado desde localStorage
-  const nombreUsuario = localStorage.getItem("nombre");
+  // 1. Obtenemos el ID del usuario guardado en el login
+  const idUsuario = localStorage.getItem("usuario_id");
 
-  // La función debe ser 'async' para usar 'await' con fetch
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -31,17 +31,18 @@ export const ChangePassword = () => {
       return;
     }
 
-    if(!nombreUsuario){
-      return
+    if (!idUsuario) {
+      setError("No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.");
+      return;
     }
 
     // --- Lógica del Backend (fetch) ---
     try {
-      const response = await fetch("http://3.131.85.192:3000/change-password", {
+      const response = await fetch("http://localhost:3000/change-password", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre: nombreUsuario, // Enviamos el ID del usuario
+          id_usuario: idUsuario, // 2. Enviamos el ID correcto al backend
           currentPassword: currentPassword,
           newPassword: newPassword,
         }),
@@ -50,20 +51,17 @@ export const ChangePassword = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        // Si hay un error (ej: 400), usamos el mensaje del backend
-        // (ej: "La contraseña actual es incorrecta.")
         throw new Error(data.error || "No se pudo actualizar la contraseña.");
       }
 
-      // Si todo sale bien
-      setMessage(data.message); // "¡Contraseña actualizada con éxito!"
+      // Éxito
+      setMessage(data.message);
       setError("");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
 
     } catch (error) {
-      // Capturamos el error (ej: "La contraseña actual es incorrecta")
       setError(error.message);
       setMessage("");
     }
@@ -101,7 +99,6 @@ export const ChangePassword = () => {
           </form>
 
           <div className="login-links">
-            {/* Usamos 'to="/Sesion"' para volver al perfil */}
             <NavLink to="/Sesion">Volver a Mi Cuenta</NavLink>
           </div>
         </div>

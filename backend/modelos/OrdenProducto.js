@@ -24,3 +24,9 @@ export const OrdenProducto = sequelize.define("orden_producto", {
 // Relaciones
 Orden.belongsToMany(Producto, { through: OrdenProducto, foreignKey: "orden_id" });
 Producto.belongsToMany(Orden, { through: OrdenProducto, foreignKey: "producto_id" });
+
+Orden.hasMany(OrdenProducto, { foreignKey: 'orden_id' });
+OrdenProducto.belongsTo(Orden, { foreignKey: 'orden_id' });
+
+Producto.hasMany(OrdenProducto, { foreignKey: 'producto_id' });
+OrdenProducto.belongsTo(Producto, { foreignKey: 'producto_id' });
