@@ -9,7 +9,8 @@ import { Pago } from "./modelos/Pago.js";
 import { Envio } from "./modelos/Envio.js";
 import { Orden } from "./modelos/Orden.js";
 import { OrdenProducto } from "./modelos/OrdenProducto.js";
-
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 
 const app = express();
@@ -433,6 +434,75 @@ app.put("/orders/:id/cancel", async (req, res) => {
     res.status(500).json({ error: "Error en el servidor." });
   }
 });
+
+
+// Configurar nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "20200812@aloe.ulima.edu.pe", // tu correo
+    pass: "hjztpfeqdqabolhn"            // tu contraseña de aplicación (sin espacios)
+  }
+});
+
+// --- Endpoint: Recuperar Contraseña ---
+app.post("/api/password-reset", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ error: "Correo no registrado." });
+
+    // Enviar correo al usuario con el link
+    const resetUrl = `http://localhost:5173/ResetPassword`; // Frontend ResetPassword
+    await transporter.sendMail({
+      from: '"Soporte" <20200812@aloe.ulima.edu.pe>',
+      to: email,
+      subject: "Recuperación de contraseña",
+      html: `<p>Hola ${user.nombre}, haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+             <a href="${resetUrl}">Restablecer contraseña</a>`
+    });
+
+    // Retornar id_usuario para frontend
+    res.json({ message: "Correo enviado", id_usuario: user.user_id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor." });
+  }
+});
+
+// --- Endpoint: Cambiar Contraseña ---
+app.put("/change-passwordd", async (req, res) => {
+  const { id_usuario, newPassword } = req.body;
+
+  try {
+    const user = await User.findByPk(id_usuario);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    user.contrasena = newPassword; // aquí podrías usar hash si quieres seguridad
+    await user.save();
+
+    res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ============================================================================================================
 

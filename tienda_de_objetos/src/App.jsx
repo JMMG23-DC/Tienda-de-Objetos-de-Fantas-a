@@ -16,6 +16,8 @@ import Sesion from "./pages/Mi_Cuenta/Sesion.jsx"
 import Edit from "./pages/Mi_Cuenta/Edit.jsx"
 import ChangePassword from "./pages/Mi_Cuenta/ChangePassword.jsx"
 import OrderDetail from "./pages/Mi_Cuenta/OrderDetail.jsx"
+import ResetPassword from "./pages/Mi_Cuenta/ResetPassword.jsx"
+
 
 
 // Alumno 4
@@ -66,6 +68,8 @@ const App = () => {
          <Route path="Edit" element={<Edit />}/>
          <Route path="ChangePassword" element={<ChangePassword />}/>
          <Route path="OrderDetail/:id" element={<OrderDetail />}/>
+         <Route path="ResetPassword/:id" element={<ResetPassword />}/>
+         <Route path="/ResetPassword" element={<ResetPassword />}/>
 
          {/*Admin*/}
          {/*ProductList*/}

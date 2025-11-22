@@ -1,34 +1,52 @@
 import { useState } from "react";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Footer } from "../Home/components/Footer";
 import "../Login/login.css";
 
 export const Password = () => {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     if (!email) {
       setError("Por favor ingresa tu correo electrónico");
-      setMessage("");
       return;
     }
 
-    // Aquí iría la lógica para enviar correo de recuperación
-    setError("");
-    setMessage(`Se ha enviado un correo de recuperación a ${email}`);
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:3000/api/password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Ocurrió un error");
+      } else {
+        // Guardamos id_usuario y redirigimos
+        localStorage.setItem("usuario_id", data.id_usuario);
+      }
+    } catch (err) {
+      setError("Error de conexión. Intenta nuevamente");
+    }
+
+    setLoading(false);
     setEmail("");
   };
+
   return (
-      <>
+    <>
       <section className="login-container">
         <div className="login-card">
           <h1>Recuperar Contraseña</h1>
-
           {error && <p className="error">{error}</p>}
-          {message && <p className="success">{message}</p>}
 
           <form onSubmit={handleSubmit}>
             <input
@@ -37,15 +55,16 @@ export const Password = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <button type="submit">Enviar Correo</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Enviando..." : "Enviar"}
+            </button>
           </form>
 
           <div className="login-links">
-            <NavLink to="/Login">Volver al Login</NavLink>
+            <NavLink to="/login">Volver al Login</NavLink>
           </div>
         </div>
       </section>
-
       <Footer />
     </>
   );
