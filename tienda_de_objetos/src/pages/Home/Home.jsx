@@ -12,15 +12,33 @@ export const Home = () => {
         nuevosProductos: [],    
         categoriasNuevas: []    
     });
+
     const [loading, setLoading] = useState(true);
+
+    // Guardar en LocalStorage
+    const saveToLocalStorage = (key, value) => {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            console.error("Error guardando en LocalStorage:", error);
+        }
+    };
 
     useEffect(() => {
         const fetchHomeData = async () => {
             try {
-                const response = await fetch("http://localhost:3000/home-data");
+                const response = await fetch("http://3.131.85.192:3000/home-data");
                 if (!response.ok) throw new Error("Error al cargar datos del servidor");
+
                 const result = await response.json();
                 setData(result);
+
+                // Guardar los datos en LocalStorage
+                saveToLocalStorage("topCategorias", result.topCategorias);
+                saveToLocalStorage("topProductos", result.topProductos);
+                saveToLocalStorage("nuevosProductos", result.nuevosProductos);
+                saveToLocalStorage("categoriasNuevas", result.categoriasNuevas);
+
             } catch (error) {
                 console.error("Error conectando con el backend:", error);
             } finally {
@@ -112,7 +130,7 @@ export const Home = () => {
                     </a>
                 </div>
 
-                {/* Categorías Nuevas (Estáticas o dinámicas según backend) */}
+                {/* Categorías Nuevas */}
                 <div className="productos-nuevos">
                     <h2>Categorías Nuevas</h2>
                     <div className="productos-flex wrap">

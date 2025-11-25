@@ -2,7 +2,6 @@ import express from "express";
 import { sequelize } from "./database/database.js";
 import cors from "cors";
 import { Op } from "sequelize";
-// Importación de modelos
 import { User } from "./modelos/User.js";
 import { Producto } from "./modelos/Producto.js";
 import { Pago } from "./modelos/Pago.js";
@@ -10,7 +9,7 @@ import { Envio } from "./modelos/Envio.js";
 import { Orden } from "./modelos/Orden.js";
 import { OrdenProducto } from "./modelos/OrdenProducto.js";
 import nodemailer from "nodemailer";
-import crypto from "crypto";
+
 
 
 const app = express();
@@ -20,8 +19,6 @@ app.use(express.json());
 app.use(cors());
 
 // HOME ==========================================================================
-
-
 // 1. DATOS PARA EL HOME (DASHBOARD) - Lógica de Negocio
 app.get("/home-data", async (req, res) => {
   try {
@@ -130,6 +127,91 @@ app.get("/home-data", async (req, res) => {
 
 
 
+// CARRITO ==========================================================================
+//
+app.get("/api/productos", async (req, res) => {
+  try {
+    const prods = await Producto.findAll({ 
+      order: [['id_producto', 'ASC']] 
+    });
+    res.json(prods);
+  } catch (error) { 
+    console.error(error);
+    res.status(500).json({ error: "Error servidor" }); 
+  }
+});
+
+// Crear ORDEN
+
+app.post("/api/ordenes", async (req, res) => {
+  const t = await sequelize.transaction(); // Iniciar transacción
+
+  try {
+    const { usuario_id, datos_envio, datos_pago, items } = req.body;
+
+    // 1. Crear Envío
+    const nuevoEnvio = await Envio.create({
+      metodo_envio: datos_envio.metodo,
+      ciudad: datos_envio.ciudad,
+      direccion: datos_envio.direccion
+    }, { transaction: t });
+
+    // 2. Crear Pago
+    const nuevoPago = await Pago.create({
+      fecha_pago: new Date(),
+      estado_pago: "Completado",
+      metodo_pago: datos_pago.metodo
+    }, { transaction: t });
+
+    // 3. Crear Orden
+    const nuevaOrden = await Orden.create({
+      usuario_id: usuario_id,
+      envio_id: nuevoEnvio.entrega_id,
+      pago_id: nuevoPago.pago_id,
+      fecha_orden: new Date(),
+      estado: "Procesando"
+    }, { transaction: t });
+
+    // 4. Insertar Productos
+    for (const item of items) {
+      await OrdenProducto.create({
+        orden_id: nuevaOrden.id_orden,
+        producto_id: item.id_producto, // ID del producto
+        cantidad: item.cantidad,
+        subtotal: item.cantidad * item.precio
+      }, { transaction: t });
+    }
+
+    await t.commit(); // Guardar cambios
+
+    res.status(201).json({
+      message: "Orden creada exitosamente",
+      ordenId: nuevaOrden.id_orden
+    });
+
+  } catch (error) {
+    await t.rollback(); // Revertir cambios si hay error
+    console.error("Error al crear orden:", error);
+    res.status(500).json({ message: "Error al procesar la orden", error: error.message });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -172,7 +254,6 @@ app.get("/home-data", async (req, res) => {
 
 
 // USAURIOS==============================================================================================================================
-
 // LOGIN USUARIO
 app.post("/login", async (req, res) => {
   try {
@@ -489,21 +570,6 @@ app.put("/change-passwordd", async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ============================================================================================================
 
 // ADMIN =======================================================================================================
@@ -569,6 +635,8 @@ app.get("/products", async (req, res) => {
     res.json(prods);
   } catch (error) { res.status(500).json({ error: "Error servidor" }); }
 });
+
+
 
 // PRODUCTOS: CAMBIAR ESTADO (TOGGLE)
 app.put("/products/:id/toggle", async (req, res) => {

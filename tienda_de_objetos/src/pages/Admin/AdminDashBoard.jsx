@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   // Función para traer datos REALES del backend
   const getSummary = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/admin/summary?startDate=${startDate}&endDate=${endDate}`);
+      const response = await fetch(`http://3.131.85.192:3000/admin/summary?startDate=${startDate}&endDate=${endDate}`);
       if (!response.ok) throw new Error("Error al cargar resumen");
       const data = await response.json();
       setSummary(data);

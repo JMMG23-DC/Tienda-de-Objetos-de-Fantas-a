@@ -5,8 +5,6 @@ import "../List_Prod/car.css";
 import { NavLink } from "react-router-dom";
 
 
-// Función para obtener el estado inicial del carrito
-// ADVERTENCIA: No incluye manejo de errores. Si el JSON es inválido, fallará.
 const loadInitialCart = () => {
     const storedCart = localStorage.getItem("cart");
     return storedCart ? JSON.parse(storedCart) : [];

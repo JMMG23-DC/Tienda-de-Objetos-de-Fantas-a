@@ -14,7 +14,7 @@ export const OrderDetail = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/orders/${id}`);
+        const response = await fetch(`http://3.131.85.192:3000/orders/${id}`);
         if (!response.ok) throw new Error("No se encontró la orden");
         const data = await response.json();
         setOrden(data);
@@ -35,7 +35,7 @@ export const OrderDetail = () => {
 
     try {
       // Llamada al Backend para actualizar la base de datos
-      const response = await fetch(`http://localhost:3000/orders/${id}/cancel`, {
+      const response = await fetch(`http://3.131.85.192:3000/orders/${id}/cancel`, {
         method: "PUT",
       });
       

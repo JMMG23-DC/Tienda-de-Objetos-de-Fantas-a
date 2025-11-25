@@ -9,7 +9,7 @@ export default function OrderDetailUser() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/ordenes/${id}`)
+    fetch(`http://3.131.85.192:3000/ordenes/${id}`)
       .then(res => res.json())
       .then(data => {
         setOrder(data);
@@ -27,7 +27,7 @@ export default function OrderDetailUser() {
     setUpdating(true);
 
     try {
-      const res = await fetch(`http://localhost:3000/ordenes/${id}`, {
+      const res = await fetch(`http://3.131.85.192:3000/ordenes/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: "Cancelado" })

@@ -11,7 +11,7 @@ export default function UserDetail() {
   useEffect(() => {
     const fetchUserDetail = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/users/${id}`);
+        const response = await fetch(`http://3.131.85.192:3000/users/${id}`);
         if (!response.ok) throw new Error("Error al cargar datos del usuario");
         const data = await response.json();
         setUserData(data);

@@ -10,16 +10,10 @@ export default function NewProduct() {
   const [imagen, setImagen] = useState(null);
   const [error, setError] = useState("");
 
-  // =====================
-  // 📌 Capturar imagen
-  // =====================
   function handleImage(e) {
     setImagen(e.target.files[0]);
   }
 
-  // =====================
-  // 📌 Enviar datos
-  // =====================
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -35,7 +29,7 @@ export default function NewProduct() {
     formData.append("imagen", imagen);
 
     try {
-      const res = await fetch("http://localhost:3000/productos", {
+      const res = await fetch("http://3.131.85.192:3000/productos", {
         method: "POST",
         body: formData
       });
