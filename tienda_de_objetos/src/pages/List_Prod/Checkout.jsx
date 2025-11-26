@@ -21,6 +21,13 @@ const setLocalStorage = (key, value) => {
     }
 };
 
+// Lista de ciudades del Perú
+const ciudadesPeru = [
+    "Lima", "Arequipa", "Trujillo", "Cusco", "Chiclayo", "Piura", "Iquitos",
+    "Huancayo", "Tacna", "Puno", "Chimbote", "Ica", "Huánuco", "Ayacucho",
+    "Juliaca", "Sullana", "Tumbes", "Puerto Maldonado", "Moquegua", "Chachapoyas"
+];
+
 export const Checkout = () => {
 
     const navigate = useNavigate();
@@ -34,15 +41,11 @@ export const Checkout = () => {
     const [direccion, setDireccion] = useState("");
     const [ciudad, setCiudad] = useState("");
 
-    // Métodos de pago nuevos
     const [metodoPago, setMetodoPago] = useState("qr");
-
     const [tarjeta, setTarjeta] = useState("");
     const [fechaExp, setFechaExp] = useState("");
     const [cvv, setCvv] = useState("");
-
     const [metodoEnvio, setMetodoEnvio] = useState("estandar");
-
     const [procesando, setProcesando] = useState(false);
 
     const subtotalCalc = cartItems.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
@@ -54,7 +57,6 @@ export const Checkout = () => {
         const usuarioId = Number(localStorage.getItem("usuario_id"));
 
         if (!usuarioId) return alert("Error: usuario no autenticado.");
-
         if (!nombre || !direccion || !ciudad) return alert("Completa los datos de envío.");
         if (metodoPago === "tarjeta" && (!tarjeta || !fechaExp || !cvv)) 
             return alert("Completa los datos de tu tarjeta.");
@@ -62,7 +64,6 @@ export const Checkout = () => {
 
         setProcesando(true);
 
-        // Datos del pago que sí se almacenan
         const ordenData = {
             usuario_id: usuarioId,
             datos_envio: { metodo: metodoEnvio, ciudad, direccion },
@@ -128,7 +129,14 @@ export const Checkout = () => {
                     <h2>Envío</h2>
                     <input placeholder="Nombre" value={nombre} onChange={e=>setNombre(e.target.value)} />
                     <input placeholder="Dirección" value={direccion} onChange={e=>setDireccion(e.target.value)} />
-                    <input placeholder="Ciudad" value={ciudad} onChange={e=>setCiudad(e.target.value)} />
+
+                    {/* Select de ciudades */}
+                    <select value={ciudad} onChange={e=>setCiudad(e.target.value)}>
+                        <option value="">Selecciona una ciudad</option>
+                        {ciudadesPeru.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
 
                     <select value={metodoEnvio} onChange={e=>setMetodoEnvio(e.target.value)}>
                         <option value="estandar">Estándar (S/10)</option>
@@ -148,7 +156,6 @@ export const Checkout = () => {
                         <option value="tarjeta">Tarjeta</option>
                     </select>
 
-                    {/* Mostrar QR */}
                     {(metodoPago === "qr" || metodoPago === "yape" || metodoPago === "plin") && (
                         <div className="qr-container">
                             <img src={qrImage} className="qr-img" alt="QR" />
@@ -156,7 +163,6 @@ export const Checkout = () => {
                         </div>
                     )}
 
-                    {/* Campos de tarjeta */}
                     {(metodoPago === "tarjeta" || metodoPago === "paypal")  && (
                         <div className="tarjeta-form">
                             <input 
@@ -178,8 +184,6 @@ export const Checkout = () => {
                             />
                         </div>
                     )}
-
-                    
                 </div>
 
                 {/* Total */}
