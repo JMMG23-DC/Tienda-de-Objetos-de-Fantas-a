@@ -12,7 +12,7 @@ export default function NewCategory() {
 
   // Cargar productos del backend
   useEffect(() => {
-    fetch("http://3.131.85.192:3000/products") // Endpoint real de productos
+    fetch("http://3.131.85.192:3000/products")
       .then(res => res.json())
       .then(data => setProductos(data))
       .catch(err => console.error("Error al cargar productos:", err));

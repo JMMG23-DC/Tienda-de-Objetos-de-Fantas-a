@@ -12,10 +12,9 @@ export const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // La lógica de handleSubmit ahora es asíncrona para llamar al fetch
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Limpiar errores previos
+    setError("");
 
     if (!email || !password) {
       setError("Por favor completa todos los campos");

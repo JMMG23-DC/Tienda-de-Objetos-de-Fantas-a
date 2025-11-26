@@ -46,7 +46,7 @@ app.get("/home-data", async (req, res) => {
       order: [['categoria_id', 'ASC']]
     });
 
-    // Obtener un producto de ejemplo para cada categoría (para la imagen)
+    // Obtener un producto de ejemplo para cada categoría
     const topCategorias = [];
     for (const categoria of categorias) {
       const productoEjemplo = await Producto.findOne({
@@ -56,13 +56,13 @@ app.get("/home-data", async (req, res) => {
       
       topCategorias.push({
         categoria: categoria.nombre,
-        ventas: 0, // No importa para la visualización
+        ventas: 0, 
         imagen: productoEjemplo ? productoEjemplo.imagen_url : "/images/default.png"
       });
     }
 
 
-    // --- B. Top 12 Productos Más Vendidos (Este Mes) ---
+    //  Productos Más Vendidos (Este Mes) ---
     const ventasDelMes = ventas.filter(venta => {
         if (!venta.orden) return false;
         const fechaOrden = new Date(venta.orden.fecha_orden);
@@ -88,12 +88,12 @@ app.get("/home-data", async (req, res) => {
         .sort((a, b) => b.ventasMes - a.ventasMes)
         .slice(0, 12);
 
-    // Si no hay ventas este mes, rellenamos con un fallback (los 12 primeros generales)
+    // Si no hay ventas este mes, rellenamos con un fallbac
     if (ventasDelMes.length === 0) {
        topProductosMes = productos.slice(0, 12); 
     }
 
-    // --- C. Productos Recientes (MODIFICADO: Usa 'nuevo_producto') ---
+    // 
     // Filtramos los que tienen nuevo_producto en true
     let nuevosProductos = productos.filter(p => p.nuevo_producto === true);
     console.log("Productos con nuevo_producto=true:", nuevosProductos.length);
@@ -109,12 +109,12 @@ app.get("/home-data", async (req, res) => {
             .slice(0, 6);
     }
 
-    // --- D. Categorías Nuevas (MODIFICADO: Usa tabla Categoria) ---
+    // ( Usa tabla Categoria) ---
     // Obtenemos categorías marcadas como nuevas
     const categoriasNuevasDB = await Categoria.findAll({ where: { nueva_categoria: true } });
     const categoriasNuevas = categoriasNuevasDB.map(c => c.nombre);
 
-    // Fallback si no hay categorías marcadas
+    // Fallback
     if (categoriasNuevas.length === 0) {
         categoriasNuevas.push("Gemas y Cristales Mágicos", "Grimorios Antiguos", "Artefactos y Reliquias Ancestrales");
     }
@@ -132,7 +132,7 @@ app.get("/home-data", async (req, res) => {
   }
 });
 
-// ADMIN: ventas por mes (suma de subtotales) -----------------------------------
+// ADMIN: ventas por mes (suma 
 app.get('/admin/sales-by-month', async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -203,7 +203,7 @@ app.get('/admin/sales-by-month', async (req, res) => {
   }
 });
 
-// ADMIN: usuarios por mes (conteo de users.createdAt) -------------------------
+// ADMIN: usuarios por mes 
 app.get('/admin/users-by-month', async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -432,11 +432,11 @@ app.post("/registrar_usuario", async (req, res) => {
       where: { email: email },
     });
 
-    // 2. Si existe, enviar un error 400 (Bad Request)
+    // 2. Si existe, enviar un error 400  Request)
     if (usuarioExistente) {
       return res.status(400).json({ error: "Este correo electrónico ya está registrado." });
     }
-    // -------------------------
+  
 
     // 3. Si no existe, crear el nuevo usuario
     const nuevoUsuario = await User.create({ nombre, email, contrasena });
@@ -650,7 +650,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// --- Endpoint: Recuperar Contraseña ---
+// Endpoint: Recuperar Contraseña 
 app.post("/api/password-reset", async (req, res) => {
   const { email } = req.body;
 
@@ -659,7 +659,7 @@ app.post("/api/password-reset", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Correo no registrado." });
 
     // Enviar correo al usuario con el link
-    const resetUrl = `http://localhost:5173/ResetPassword`; // Frontend ResetPassword
+    const resetUrl = `http://3.131.85.192:5173/ResetPassword`; 
     await transporter.sendMail({
       from: '"Soporte" <20200812@aloe.ulima.edu.pe>',
       to: email,
@@ -684,7 +684,7 @@ app.put("/change-passwordd", async (req, res) => {
     const user = await User.findByPk(id_usuario);
     if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
-    user.contrasena = newPassword; // aquí podrías usar hash si quieres seguridad
+    user.contrasena = newPassword; 
     await user.save();
 
     res.json({ message: "Contraseña actualizada correctamente" });
@@ -694,7 +694,7 @@ app.put("/change-passwordd", async (req, res) => {
   }
 });
 
-// ============================================================================================================
+
 
 // ADMIN =======================================================================================================
 app.get("/admin/summary", async (req, res) => {
@@ -705,30 +705,30 @@ app.get("/admin/summary", async (req, res) => {
     const start = startDate ? new Date(`${startDate}T00:00:00Z`) : new Date('2025-01-01T00:00:00Z');
     const end = endDate ? new Date(`${endDate}T23:59:59Z`) : new Date('2025-12-31T23:59:59Z');
 
-    // A. Conteo de Órdenes (Filtrado por fecha)
+    // (Filtrado por fecha)
     const ordersCount = await Orden.count({
       where: {
         fecha_orden: { [Op.between]: [start, end] }
       }
     });
 
-    // B. Usuarios Nuevos (Filtrado por fecha de creación)
+    // Usuarios Nuevos 
     const newUsersCount = await User.count({
       where: {
         createdAt: { [Op.between]: [start, end] }
       }
     });
 
-    // C. Ingresos Totales (Suma de subtotales de órdenes NO canceladas en ese rango)
+    //  Ingresos Totales
     const totalIncome = await OrdenProducto.sum('subtotal', {
       include: [{
         model: Orden,
-        attributes: [], // <--- ¡ESTA ES LA CLAVE! No seleccionar columnas de Orden
+        attributes: [], 
         where: {
           fecha_orden: { [Op.between]: [start, end] },
           estado: { [Op.ne]: 'Cancelado' }
         },
-        required: true // Inner Join
+        required: true 
       }]
     });
 
@@ -765,7 +765,7 @@ app.get("/products", async (req, res) => {
 
 
 
-// PRODUCTOS: CAMBIAR ESTADO (TOGGLE)
+// PRODUCTOS: 
 app.put("/products/:id/toggle", async (req, res) => {
   try {
     const prod = await Producto.findByPk(req.params.id);
@@ -806,7 +806,7 @@ app.get("/products/:id", async (req, res) => {
 import multer from "multer";
 import path from "path";
 
-// Ruta dinámica hacia /tienda_de_objetos/public/images
+// Ruta hacia /tienda_de_objetos/public/images
 const imagePath = path.join(process.cwd(), "../tienda_de_objetos/public/images");
 
 const storage = multer.diskStorage({
@@ -838,8 +838,8 @@ app.post("/productos", upload.single("imagen"), async (req, res) => {
       categoria_id: parseInt(categoria_id),
       precio: parseFloat(precio),
       imagen_url: imagen,
-      nuevo_producto: true,  // Marcar como nuevo producto
-      activo: true          // Producto activo por defecto
+      nuevo_producto: true,  
+      activo: true          
     });
 
     res.status(200).json(nuevo);
@@ -864,7 +864,7 @@ app.get("/ordenes", async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["user_id", "nombre", "email"]   // ← corregido
+          attributes: ["user_id", "nombre", "email"]   
         },
         {
           model: Pago,
@@ -939,8 +939,8 @@ app.put("/ordenes/:id", async (req, res) => {
   }
 });
 
-// CATEGORIAS ===========================================================================================
-// OBTENER LISTA DE CATEGORÍAS
+// CATEGORIAS ======
+// OBTENER LISTA 
 app.get("/categories", async (req, res) => {
   try {
     // Obtener categorías con conteo de productos
@@ -961,7 +961,7 @@ app.get("/categories", async (req, res) => {
       raw: false
     });
 
-    // Formatear respuesta para compatibilidad con frontend
+    // Formate frontend
     const categoriasFormateadas = categorias.map(cat => ({
       categoria_id: cat.categoria_id,
       categoria: cat.nombre,
@@ -1006,7 +1006,7 @@ app.put("/categories/update", async (req, res) => {
   }
 });
 
-// Agregar Categoria
+
 
 // Crear nueva categoría
 app.post("/categories/new", async (req, res) => {
@@ -1075,7 +1075,7 @@ app.put("/categories/update-products", async (req, res) => {
 });
 
 
-// USER LIST ========================================================================================================
+// USER LIST =============
 // OBTENER TODOS LOS USUARIOS
 app.get("/users", async (req, res) => {
   try {
@@ -1089,7 +1089,7 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// CAMBIAR ESTADO DE USUARIO (Activar/Desactivar)
+// ESTADO ACTIVO/INACTIVO
 app.put("/users/:id/toggle", async (req, res) => {
   try {
     const { id } = req.params;
@@ -1116,26 +1116,26 @@ app.get("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Buscar información del usuario
+    
     const usuario = await User.findByPk(id);
     if (!usuario) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    // 2. Buscar las órdenes de ese usuario (con productos para calcular totales)
+    // 2. Buscar las órdenes de ese usuario 
     const ordenes = await Orden.findAll({
       where: { usuario_id: id },
       include: [
         {
           model: Producto,
-          through: { attributes: ['cantidad', 'subtotal'] } // Necesario para sumar $$
+          through: { attributes: ['cantidad', 'subtotal'] } 
         }
       ],
-      order: [['fecha_orden', 'DESC']], // Las más recientes primero
-      limit: 10 // Límite opcional (ej. últimas 10 órdenes)
+      order: [['fecha_orden', 'DESC']], 
+      limit: 10 
     });
 
-    // 3. Formatear los datos para que el Frontend los entienda fácil
+    
     const ordenesFormateadas = ordenes.map(orden => {
       // Calcular total de la orden sumando los subtotales de sus productos
       const totalOrden = orden.productos.reduce((acc, prod) => acc + prod.orden_producto.subtotal, 0);
@@ -1145,7 +1145,7 @@ app.get("/users/:id", async (req, res) => {
       return {
         id: orden.id_orden,
         date: orden.fecha_orden,
-        total: totalOrden.toFixed(2), // Formato con 2 decimales
+        total: totalOrden.toFixed(2), 
         items: totalItems,
         estado: orden.estado
       };
@@ -1173,8 +1173,6 @@ function fechaEntre(inicio, fin) {
   return new Date(inicio.getTime() + Math.random() * (fin.getTime() - inicio.getTime()));
 }
 
-// ================================================================================
-
 function fechaAleatoria(mes, year = 2025) {
   const inicio = new Date(year, mes - 1, 1);
   const fin = new Date(year, mes, 0, 23, 59, 59, 999);
@@ -1191,7 +1189,7 @@ async function sincronizarBD() {
     await sequelize.sync({ force: true });
     console.log("Tablas sincronizadas.");
 
-    // --- Creación de Dataset (Solo si las tablas están vacías) ---
+    // --- Creación de Dataset  ---
 
     // 1. Crear Usuarios: un Admin por defecto + usuarios aleatorios distribuidos en 2025
     if ((await User.count()) === 0) {
@@ -1260,11 +1258,11 @@ async function sincronizarBD() {
     }
 
 
-    // 3. Crear Productos (50)
+    // 3. Crear Productos 
     if ((await Producto.count()) === 0) {
       console.log("Creando productos...");
       
-      // Obtener categorías para asignar IDs
+      //  categorías para asignar IDs
       const categoriasPociones = await Categoria.findOne({ where: { nombre: "Pociones y Elixires Místicos" } });
       const categoriasArmas = await Categoria.findOne({ where: { nombre: "Armas Encantadas" } });
       const categoriasArmaduras = await Categoria.findOne({ where: { nombre: "Armaduras y Escudos Protectores" } });
@@ -1274,7 +1272,7 @@ async function sincronizarBD() {
       
 
       const productos = [
-      // Pociones (Viejas)
+      // Pociones 
       {"nombre":"Poción de Curación","descripcion":"Restaura 50 PS.","precio":25,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_curacion.png","rareza":"Común","nuevo_producto":false},
       {"nombre":"Elixir de Maná","descripcion":"Recupera 40 PM.","precio":30,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/elixir_mana.png","rareza":"Común","nuevo_producto":false},
       {"nombre":"Poción de Fuerza","descripcion":"Aumenta ataque.","precio":40,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_fuerza.png","rareza":"Raro","nuevo_producto":false},
@@ -1286,7 +1284,7 @@ async function sincronizarBD() {
       {"nombre":"Elixir de Resistencia","descripcion":"Reduce daño 20%.","precio":55,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/elixir_resistencia.png","rareza":"Raro","nuevo_producto":false},
       {"nombre":"Poción Antídoto","descripcion":"Cura veneno.","precio":45,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_antidoto.png","rareza":"Raro","nuevo_producto":false},
 
-    // Armas (Viejas)
+    // Armas 
     {"nombre":"Espada del Dragón","descripcion":"Fuego de dragón.","precio":500,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/espada_dragon.png","rareza":"Legendario","nuevo_producto":false},
     {"nombre":"Arco Elfico","descripcion":"Gran precisión.","precio":450,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/arco_elfico.png","rareza":"Épico","nuevo_producto":false},
     {"nombre":"Daga de Sombras","descripcion":"Silenciosa.","precio":300,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/daga_sombras.png","rareza":"Raro","nuevo_producto":false},
@@ -1298,7 +1296,7 @@ async function sincronizarBD() {
     {"nombre":"Katana Espiritual","descripcion":"Filo espiritual.","precio":520,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/katana_espiritual.png","rareza":"Épico","nuevo_producto":false},
     {"nombre":"Maza de Obsidiana","descripcion":"Rompe armaduras.","precio":600,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/maza_obsidiana.png","rareza":"Legendario","nuevo_producto":false},
 
-      // Grimorios (Grimorios Antiguos)
+      // Grimorios 
       {"nombre":"Grimorio de Fuego","descripcion":"Hechizos fuego.","precio":200,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_fuego.png","rareza":"Raro","nuevo_producto":false},
       {"nombre":"Grimorio de Hielo","descripcion":"Magia hielo.","precio":200,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_hielo.png","rareza":"Raro","nuevo_producto":false},
       {"nombre":"Grimorio de Oscuridad","descripcion":"Invoca sombras.","precio":300,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_oscuridad.png","rareza":"Épico","nuevo_producto":false},
@@ -1308,7 +1306,7 @@ async function sincronizarBD() {
       {"nombre":"Grimorio de Sangre","descripcion":"Sacrificio vital.","precio":500,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_sangre.png","rareza":"Legendario","nuevo_producto":true},
       {"nombre":"Grimorio Arcano","descripcion":"Secretos prohibidos.","precio":600,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_arcano.png","rareza":"Legendario","nuevo_producto":true},
 
-      // Cristales (Gemas)
+      // Cristales 
       {"nombre":"Cristal de Vida","descripcion":"Salud +20.","precio":150,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_vida.png","rareza":"Raro","nuevo_producto":true},
       {"nombre":"Cristal de Energía","descripcion":"Mana rapido.","precio":180,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_energia.png","rareza":"Raro","nuevo_producto":true},
       {"nombre":"Cristal de Fuego","descripcion":"Ataque fuego.","precio":160,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_fuego.png","rareza":"Raro","nuevo_producto":true},
@@ -1317,7 +1315,7 @@ async function sincronizarBD() {
       {"nombre":"Cristal de Tierra","descripcion":"Resistencia física.","precio":170,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_tierra.png","rareza":"Raro","nuevo_producto":true},
       {"nombre":"Cristal de Oscuridad","descripcion":"Ataque sombrío.","precio":210,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_oscuridad.png","rareza":"Épico","nuevo_producto":true},
 
-      // Reliquias (Artefactos)
+      // Reliquias 
       {"nombre":"Amuleto del Guardián","descripcion":"Protección.","precio":250,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/amuleto_guardian.png","rareza":"Épico","nuevo_producto":true},
       {"nombre":"Anillo de la Fortuna","descripcion":"Más tesoros.","precio":350,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/anillo_fortuna.png","rareza":"Épico","nuevo_producto":true},
       {"nombre":"Medallón de Sabiduría","descripcion":"Exp +20%.","precio":400,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/medallon_sabiduria.png","rareza":"Legendario","nuevo_producto":true},
@@ -1350,14 +1348,14 @@ async function sincronizarBD() {
       const ciudades = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
 
       const usuarios = await User.findAll();
-      // Obtener los productos reales desde la BD para usar sus `id_producto`
+      
       const productosDB = await Producto.findAll();
 
-      // límite superior para generar fechas: fin de 2025
+      
       const fin2025 = new Date(2025, 11, 31, 23, 59, 59, 999);
 
       for (const usuario of usuarios) {
-        const totalOrdenes = Math.floor(Math.random() * 7) + 2; // 2 a 8 órdenes
+        const totalOrdenes = Math.floor(Math.random() * 7) + 2; 
 
         for (let i = 0; i < totalOrdenes; i++) {
           // Generar fecha en 2025: elegir un mes aleatorio entre enero (1) y diciembre (12)

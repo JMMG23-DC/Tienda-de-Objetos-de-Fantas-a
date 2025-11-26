@@ -27,7 +27,6 @@ export const Sesion = () => {
         setOrdenes(JSON.parse(ordenesEnCache));
       }
 
-      // 2️⃣ Traer siempre la data nueva del backend
       try {
         const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
         if (!response.ok) throw new Error("Error al cargar las órdenes");

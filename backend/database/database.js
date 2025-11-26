@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { Sequelize } from "sequelize";
 
-// Leer configuración desde variables de entorno (con valores por defecto)
+
 const {
   DB_NAME = "bdprograweb",
   DB_USER = "postgres",

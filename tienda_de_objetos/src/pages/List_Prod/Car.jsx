@@ -15,7 +15,7 @@ export const Car = () => {
     // Cargar el carrito inicial y establecer el estado
     const [productos, setProductos] = useState(loadInitialCart);
 
-    // EFECTO: Sincronizar el estado 'productos' con localStorage
+ 
     useEffect(() => {
         localStorage.setItem("cart", JSON.stringify(productos));
     }, [productos]);
@@ -41,7 +41,7 @@ export const Car = () => {
         setProductos(nuevos);
     };
 
-    // FUNCIÓN: Mueve entre el carrito activo y la lista de guardados (guardado: true/false)
+    //  Mueve entre el carrito activo y la lista de guardados (guardado: true/false)
     const guardarParaDespues = (id) => {
         const nuevos = productos.map((p) =>
             p.id === id ? { ...p, guardado: !p.guardado } : p
@@ -49,7 +49,7 @@ export const Car = () => {
         setProductos(nuevos);
     };
 
-    // CÁLCULO OPTIMIZADO: Calcular el total y las dos listas de productos en un solo useMemo
+    // CÁLCUlo optimaiz
     const { total, productosEnCarrito, productosGuardados } = useMemo(() => {
         let totalAcumulado = 0;
         const enCarrito = [];

@@ -16,7 +16,7 @@ export const Orden = sequelize.define("orden", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,   // 👈 Referencia correcta
+      model: User,   
       key: "user_id",
     },
   },
@@ -25,7 +25,7 @@ export const Orden = sequelize.define("orden", {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: Pago,   // 👈 Referencia correcta
+      model: Pago,   
       key: "pago_id",
     },
   },
@@ -33,7 +33,7 @@ export const Orden = sequelize.define("orden", {
   envio_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: Envio,  // 👈 Referencia correcta
+      model: Envio,  
       key: "entrega_id",
     },
   },

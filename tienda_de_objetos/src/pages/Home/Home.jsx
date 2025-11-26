@@ -4,7 +4,6 @@ import "../Home/home.css";
 import { TopBar } from "./components/TopBar";
 import { Footer } from "./components/Footer";
 
-// Componente principal de la página de inicio (Home)
 export const Home = () => {
     const [data, setData] = useState({
         topCategorias: [],      
@@ -21,7 +20,6 @@ export const Home = () => {
                 if (!response.ok) throw new Error("Error al cargar datos del servidor");
                 const result = await response.json();
                 console.log("Datos recibidos del backend:", result);
-                // Filtrar para mostrar solo productos activos (o sin definir activo, que por defecto es true)
                 const filtered = {
                     topCategorias: result.topCategorias || [],
                     topProductos: (result.topProductos || []).filter(p => p.activo !== false),

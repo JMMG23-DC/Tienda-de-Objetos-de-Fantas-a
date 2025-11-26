@@ -13,7 +13,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Limpiar errores previos
+    setError("");
 
     if (!nombre || !email || !password || !confirmPassword) {
       setError("Por favor completa todos los campos");

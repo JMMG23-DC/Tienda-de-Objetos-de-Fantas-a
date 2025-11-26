@@ -26,7 +26,7 @@ export const Edit = () => {
     if (idStored) setIdUsuario(idStored);
     if (nombreStored) {
         setNombreActual(nombreStored);
-        setNuevoNombre(nombreStored); // Pre-llenamos el input con el nombre actual
+        setNuevoNombre(nombreStored);
     }
   }, []);
 

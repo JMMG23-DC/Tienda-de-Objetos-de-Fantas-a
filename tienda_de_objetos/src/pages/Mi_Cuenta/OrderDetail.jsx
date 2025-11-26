@@ -10,7 +10,6 @@ export const OrderDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Obtener datos del Backend al cargar la página
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -29,12 +28,10 @@ export const OrderDetail = () => {
     fetchOrder();
   }, [id]);
 
-  // Función para manejar el clic en "Cancelar Pedido"
-  const handleCancelar = async () => {
-    if (!window.confirm("¿Estás seguro de que deseas cancelar este pedido?")) return;
+  const handleCancelarPedido = async () => {
+    if (!window.confirm("¿Éstas seguro de que quieres cancelar este pedido?")) return;
 
     try {
-      // Llamada al Backend para actualizar la base de datos
       const response = await fetch(`http://3.131.85.192:3000/orders/${id}/cancel`, {
         method: "PUT",
       });
