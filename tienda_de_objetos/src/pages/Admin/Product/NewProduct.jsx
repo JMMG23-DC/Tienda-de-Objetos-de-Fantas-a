@@ -29,7 +29,7 @@ export default function NewProduct() {
     formData.append("imagen", imagen);
 
     try {
-      const res = await fetch("http://3.131.85.192:3000/productos", {
+      const res = await fetch("http://localhost:3000/productos", {
         method: "POST",
         body: formData
       });

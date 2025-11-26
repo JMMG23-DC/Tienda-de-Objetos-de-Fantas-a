@@ -27,7 +27,7 @@ export const ResetPassword = () => {
     }
 
     try {
-      const response = await fetch(`http://3.131.85.192:3000/change-passwordd`, {
+      const response = await fetch(`http://localhost:3000/change-passwordd`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_usuario, newPassword }),

@@ -19,7 +19,7 @@ export const Password = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://3.131.85.192:3000/api/password-reset", {
+      const response = await fetch("http://localhost:3000/api/password-reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

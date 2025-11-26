@@ -13,7 +13,7 @@ export default function UserList() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://3.131.85.192:3000/users");
+      const response = await fetch("http://localhost:3000/users");
       if (!response.ok) throw new Error("Error al cargar usuarios");
       const data = await response.json();
       setUsers(data);
@@ -26,7 +26,7 @@ export default function UserList() {
 
   const toggleEstado = async (id) => {
     try {
-      const response = await fetch(`http://3.131.85.192:3000/users/${id}/toggle`, {
+      const response = await fetch(`http://localhost:3000/users/${id}/toggle`, {
         method: "PUT",
       });
 

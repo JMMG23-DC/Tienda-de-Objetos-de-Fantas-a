@@ -10,7 +10,7 @@ export default function OrderList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://3.131.85.192:3000/ordenes")
+    fetch("http://localhost:3000/ordenes")
       .then(res => res.json())
       .then(data => setOrdenes(data))
       .catch(err => console.error("ERROR FRONT:", err));

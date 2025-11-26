@@ -14,7 +14,7 @@ export default function ProductList() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://3.131.85.192:3000/products");
+        const response = await fetch("http://localhost:3000/products");
         if (!response.ok) throw new Error("Error al cargar productos");
         const data = await response.json();
         setProducts(data);
@@ -30,7 +30,7 @@ export default function ProductList() {
   // --- 2. ACTIVAR / DESACTIVAR (Conectado a BD) ---
   const toggleProductStatus = async (id, currentStatus) => {
     try {
-      const response = await fetch(`http://3.131.85.192:3000/products/${id}/toggle`, {
+      const response = await fetch(`http://localhost:3000/products/${id}/toggle`, {
         method: "PUT"
       });
       

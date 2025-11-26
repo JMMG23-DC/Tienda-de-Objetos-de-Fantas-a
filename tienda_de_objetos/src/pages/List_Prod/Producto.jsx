@@ -27,7 +27,7 @@ export const Producto = () => {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const res = await fetch("http://3.131.85.192:3000/api/productos");
+        const res = await fetch("http://localhost:3000/api/productos");
         const data = await res.json();
 
         const productosAdaptados = data.map(item => ({

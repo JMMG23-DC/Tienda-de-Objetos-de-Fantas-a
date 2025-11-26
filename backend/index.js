@@ -281,7 +281,7 @@ app.post("/api/ordenes", async (req, res) => {
       envio_id: nuevoEnvio.entrega_id,
       pago_id: nuevoPago.pago_id,
       fecha_orden: new Date(),
-      estado: "Procesando"
+      estado: "Pendiente"
     }, { transaction: t });
 
     // 4. Insertar Productos
