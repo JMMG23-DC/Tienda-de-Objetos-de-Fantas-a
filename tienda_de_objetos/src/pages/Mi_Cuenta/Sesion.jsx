@@ -36,7 +36,7 @@ export const Sesion = () => {
         }
         
         // 2. Si no hay caché, hacer fetch del backend
-        const response = await fetch(`http://localhost:3000/mis-ordenes/${nombre}`);
+        const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
         
         if (!response.ok) {
           throw new Error("Error al cargar las órdenes");

@@ -10,7 +10,7 @@ export default function CategoryList() {
   const navigate = useNavigate();
 
   const fetchCategories = () => {
-    fetch("http://localhost:3000/categories")
+    fetch("http://3.131.85.192:3000/categories")
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error("ERROR FRONT:", err));
@@ -27,7 +27,7 @@ export default function CategoryList() {
     if (nuevaDesc === null) return;
 
     try {
-      const res = await fetch("http://localhost:3000/categories/update", {
+      const res = await fetch("http://3.131.85.192:3000/categories/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

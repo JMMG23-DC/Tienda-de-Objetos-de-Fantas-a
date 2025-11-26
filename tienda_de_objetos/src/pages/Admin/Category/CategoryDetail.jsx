@@ -10,7 +10,7 @@ export default function CategoryList() {
   const navigate = useNavigate();
 
   useEffect(() => { 
-    fetch("http://localhost:3000/categories")
+    fetch("http://3.131.85.192:3000/categories")
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error("ERROR FRONT:", err));

@@ -22,13 +22,13 @@ export default function AdminDashboard() {
   const getSummary = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/admin/summary?startDate=${startDate}&endDate=${endDate}`);
+      const response = await fetch(`http://3.131.85.192:3000/admin/summary?startDate=${startDate}&endDate=${endDate}`);
       if (!response.ok) throw new Error("Error al cargar resumen");
       const data = await response.json();
       setSummary(data);
       // Intentar obtener ventas por mes
       try {
-        const respSales = await fetch(`http://localhost:3000/admin/sales-by-month?startDate=${startDate}&endDate=${endDate}`);
+        const respSales = await fetch(`http://3.131.85.192:3000/admin/sales-by-month?startDate=${startDate}&endDate=${endDate}`);
         if (respSales.ok) {
           const sales = await respSales.json();
           setSalesData(sales);
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
 
       // Intentar obtener usuarios por mes
       try {
-        const respUsers = await fetch(`http://localhost:3000/admin/users-by-month?startDate=${startDate}&endDate=${endDate}`);
+        const respUsers = await fetch(`http://3.131.85.192:3000/admin/users-by-month?startDate=${startDate}&endDate=${endDate}`);
         if (respUsers.ok) {
           const users = await respUsers.json();
           setUsersData(users);

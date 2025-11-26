@@ -12,7 +12,7 @@ export default function NewCategory() {
 
   // Cargar productos del backend
   useEffect(() => {
-    fetch("http://localhost:3000/products") // Endpoint real de productos
+    fetch("http://3.131.85.192:3000/products") // Endpoint real de productos
       .then(res => res.json())
       .then(data => setProductos(data))
       .catch(err => console.error("Error al cargar productos:", err));
@@ -46,7 +46,7 @@ export default function NewCategory() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/categories/update-products", {
+      const res = await fetch("http://3.131.85.192:3000/categories/update-products", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

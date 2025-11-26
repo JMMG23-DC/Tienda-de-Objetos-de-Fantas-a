@@ -17,7 +17,7 @@ export const Home = () => {
     useEffect(() => {
         const fetchHomeData = async () => {
             try {
-                const response = await fetch("http://localhost:3000/home-data");
+                const response = await fetch("http://3.131.85.192:3000/home-data");
                 if (!response.ok) throw new Error("Error al cargar datos del servidor");
                 const result = await response.json();
                 // Filtrar para mostrar solo productos activos
