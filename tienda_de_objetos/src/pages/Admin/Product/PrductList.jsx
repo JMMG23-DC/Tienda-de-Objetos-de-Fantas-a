@@ -52,10 +52,10 @@ export default function ProductList() {
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
     
-    // Usamos los nombres de campos reales de tu BD (id_producto, nombre, categoria)
+    // Usamos los nombres de campos reales de tu BD (id_producto, nombre, categoria de la relación)
     const idString = String(p.id_producto);
     const nombreString = p.nombre ? p.nombre.toLowerCase() : "";
-    const categoriaString = p.categoria ? p.categoria.toLowerCase() : "";
+    const categoriaString = p.categoria ? p.categoria.nombre?.toLowerCase() : "";
 
     const idCoincide = idString.indexOf(filterText) !== -1;
     const nombreCoincide = nombreString.indexOf(filterText) !== -1;
@@ -126,7 +126,7 @@ export default function ProductList() {
                     <tr key={p.id_producto} style={{ background: p.activo ? "#fff" : "#fff5f5", borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: "10px" }}>{p.id_producto}</td>
                     <td style={{ padding: "10px" }}>{p.nombre}</td>
-                    <td style={{ padding: "10px" }}>{p.categoria}</td>
+                    <td style={{ padding: "10px" }}>{p.categoria?.nombre || "Sin categoría"}</td>
                     <td style={{ padding: "10px", fontWeight: "bold", color: p.activo ? "green" : "red" }}>
                         {p.activo ? "Activo" : "Desactivado"}
                     </td>

@@ -1,14 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function NewProduct() {
   const navigate = useNavigate();
 
   const [nombre, setNombre] = useState("");
-  const [categoria, setCategoria] = useState("");
+  const [categoria_id, setCategoriaId] = useState("");
+  const [categorias, setCategorias] = useState([]);
   const [precio, setPrecio] = useState("");
   const [imagen, setImagen] = useState(null);
   const [error, setError] = useState("");
+
+  // Cargar categorías disponibles
+  useEffect(() => {
+    fetch("http://3.131.85.192:3000/categories")
+      .then(res => res.json())
+      .then(data => setCategorias(data))
+      .catch(err => console.error("Error al cargar categorías:", err));
+  }, []);
 
   function handleImage(e) {
     setImagen(e.target.files[0]);
@@ -17,14 +26,14 @@ export default function NewProduct() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!nombre || !categoria || !precio || !imagen) {
+    if (!nombre || !categoria_id || !precio || !imagen) {
       setError("Todos los campos son obligatorios.");
       return;
     }
 
     const formData = new FormData();
     formData.append("nombre", nombre);
-    formData.append("categoria", categoria);
+    formData.append("categoria_id", categoria_id); // Usar categoria_id
     formData.append("precio", precio);
     formData.append("imagen", imagen);
 
@@ -59,13 +68,19 @@ export default function NewProduct() {
         />
 
         <label>Categoría:</label>
-        <input 
-          type="text" 
-          value={categoria} 
-          onChange={e => setCategoria(e.target.value)} 
+        <select 
+          value={categoria_id} 
+          onChange={e => setCategoriaId(e.target.value)} 
           required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
+          style={{ width: "100%", marginBottom: "1rem", padding: "8px" }}
+        >
+          <option value="">Selecciona una categoría</option>
+          {categorias.map(cat => (
+            <option key={cat.categoria_id} value={cat.categoria_id}>
+              {cat.categoria}
+            </option>
+          ))}
+        </select>
 
         <label>Precio:</label>
         <input 

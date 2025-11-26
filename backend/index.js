@@ -6,6 +6,7 @@ import cors from "cors";
 import { Op } from "sequelize";
 import { User } from "./modelos/User.js";
 import { Producto } from "./modelos/Producto.js";
+import { Categoria } from "./modelos/Categoria.js";
 import { Pago } from "./modelos/Pago.js";
 import { Envio } from "./modelos/Envio.js";
 import { Orden } from "./modelos/Orden.js";
@@ -29,34 +30,36 @@ app.get("/home-data", async (req, res) => {
     const primerDiaMes = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), 1);
     const ultimoDiaMes = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth() + 1, 0);
 
-    const productos = await Producto.findAll();
+    const productos = await Producto.findAll({
+      include: [{
+        model: Categoria,
+        attributes: ['categoria_id', 'nombre', 'descripcion']
+      }]
+    });
     const ventas = await OrdenProducto.findAll({
       include: [{ model: Orden }]
     });
 
-    // --- A. Top 3 Categorías Más Populares (Histórico) ---
-    const ventasPorCategoria = {}; 
-
-    ventas.forEach(venta => {
-        if (venta.orden && venta.orden.estado !== "Cancelado") {
-            const prod = productos.find(p => p.id_producto === venta.producto_id);
-            if (prod) {
-                const cat = prod.categoria;
-                if (!ventasPorCategoria[cat]) {
-                    ventasPorCategoria[cat] = { 
-                        categoria: cat, 
-                        ventas: 0, 
-                        imagen: prod.imagen_url 
-                    };
-                }
-                ventasPorCategoria[cat].ventas += venta.cantidad;
-            }
-        }
+    // --- A. Top 3 Categorías (Las primeras 3 de la base de datos) ---
+    const categorias = await Categoria.findAll({ 
+      limit: 3,
+      order: [['categoria_id', 'ASC']]
     });
 
-    const topCategorias = Object.values(ventasPorCategoria)
-        .sort((a, b) => b.ventas - a.ventas)
-        .slice(0, 3);
+    // Obtener un producto de ejemplo para cada categoría (para la imagen)
+    const topCategorias = [];
+    for (const categoria of categorias) {
+      const productoEjemplo = await Producto.findOne({
+        where: { categoria_id: categoria.categoria_id },
+        attributes: ['imagen_url']
+      });
+      
+      topCategorias.push({
+        categoria: categoria.nombre,
+        ventas: 0, // No importa para la visualización
+        imagen: productoEjemplo ? productoEjemplo.imagen_url : "/images/default.png"
+      });
+    }
 
 
     // --- B. Top 12 Productos Más Vendidos (Este Mes) ---
@@ -92,25 +95,28 @@ app.get("/home-data", async (req, res) => {
 
     // --- C. Productos Recientes (MODIFICADO: Usa 'nuevo_producto') ---
     // Filtramos los que tienen nuevo_producto en true
-    let nuevosProductos = productos.filter(p => p.nuevo_producto === true).slice(0, 6);
+    let nuevosProductos = productos.filter(p => p.nuevo_producto === true);
+    console.log("Productos con nuevo_producto=true:", nuevosProductos.length);
+    
+    // Limitamos a 6 productos
+    nuevosProductos = nuevosProductos.slice(0, 6);
     
     // Si no hay ninguno marcado, usamos los últimos por ID como respaldo
     if (nuevosProductos.length === 0) {
+        console.log("No hay productos marcados como nuevos, usando fallback");
         nuevosProductos = [...productos]
             .sort((a, b) => b.id_producto - a.id_producto)
             .slice(0, 6);
     }
 
-    // --- D. Categorías Nuevas (MODIFICADO: Usa 'nueva_categoria') ---
-    // Filtramos los productos que tienen nueva_categoria en true y extraemos el nombre
-    const categoriasNuevasSet = new Set(
-        productos.filter(p => p.nueva_categoria === true).map(p => p.categoria)
-    );
-    const categoriasNuevas = [...categoriasNuevasSet];
+    // --- D. Categorías Nuevas (MODIFICADO: Usa tabla Categoria) ---
+    // Obtenemos categorías marcadas como nuevas
+    const categoriasNuevasDB = await Categoria.findAll({ where: { nueva_categoria: true } });
+    const categoriasNuevas = categoriasNuevasDB.map(c => c.nombre);
 
     // Fallback si no hay categorías marcadas
     if (categoriasNuevas.length === 0) {
-        categoriasNuevas.push("Cristales Elementales", "Reliquias y Artefactos Legendarios", "Grimorios Antiguos");
+        categoriasNuevas.push("Gemas y Cristales Mágicos", "Grimorios Antiguos", "Artefactos y Reliquias Ancestrales");
     }
 
     res.json({
@@ -244,6 +250,10 @@ app.get('/admin/users-by-month', async (req, res) => {
 app.get("/api/productos", async (req, res) => {
   try {
     const prods = await Producto.findAll({ 
+      include: [{
+        model: Categoria,
+        attributes: ['categoria_id', 'nombre', 'descripcion']
+      }],
       order: [['id_producto', 'ASC']] 
     });
     res.json(prods);
@@ -742,7 +752,13 @@ app.get("/admin/summary", async (req, res) => {
 // PRODUCTOS: OBTENER TODOS
 app.get("/products", async (req, res) => {
   try {
-    const prods = await Producto.findAll({ order: [['id_producto', 'ASC']] });
+    const prods = await Producto.findAll({ 
+      include: [{
+        model: Categoria,
+        attributes: ['categoria_id', 'nombre', 'descripcion']
+      }],
+      order: [['id_producto', 'ASC']] 
+    });
     res.json(prods);
   } catch (error) { res.status(500).json({ error: "Error servidor" }); }
 });
@@ -766,7 +782,11 @@ app.get("/products/:id", async (req, res) => {
     const { id } = req.params;
 
     const producto = await Producto.findOne({
-      where: { id_producto: id }
+      where: { id_producto: id },
+      include: [{
+        model: Categoria,
+        attributes: ['categoria_id', 'nombre', 'descripcion']
+      }]
     });
 
     if (!producto) {
@@ -804,14 +824,22 @@ const upload = multer({ storage });
 // Ruta para crear producto
 app.post("/productos", upload.single("imagen"), async (req, res) => {
   try {
-    const { nombre, categoria, precio } = req.body;
+    const { nombre, categoria_id, precio } = req.body;
     const imagen = req.file ? `/images/${req.file.filename}` : null;
+
+    // Verificar que la categoría existe
+    const categoria = await Categoria.findByPk(categoria_id);
+    if (!categoria) {
+      return res.status(400).json({ error: "Categoría no válida" });
+    }
 
     const nuevo = await Producto.create({
       nombre,
-      categoria,
-      precio,
-      imagen_url: imagen   
+      categoria_id: parseInt(categoria_id),
+      precio: parseFloat(precio),
+      imagen_url: imagen,
+      nuevo_producto: true,  // Marcar como nuevo producto
+      activo: true          // Producto activo por defecto
     });
 
     res.status(200).json(nuevo);
@@ -915,26 +943,34 @@ app.put("/ordenes/:id", async (req, res) => {
 // OBTENER LISTA DE CATEGORÍAS
 app.get("/categories", async (req, res) => {
   try {
-    const productos = await Producto.findAll();
-
-    const categoryMap = {};
-
-    productos.forEach(p => {
-      if (!categoryMap[p.categoria]) {
-        categoryMap[p.categoria] = {
-          categoria: p.categoria,
-          descripcion_categoria: p.descripcion_categoria || "",
-          totalProductos: 0,
-          activos: 0
-        };
-      }
-      categoryMap[p.categoria].totalProductos += 1;
-      if (p.activo) categoryMap[p.categoria].activos += 1; // 'activo' indica producto activo
+    // Obtener categorías con conteo de productos
+    const categorias = await Categoria.findAll({
+      include: [{
+        model: Producto,
+        attributes: []
+      }],
+      attributes: [
+        'categoria_id',
+        'nombre',
+        'descripcion',
+        'nueva_categoria',
+        [sequelize.fn('COUNT', sequelize.col('productos.id_producto')), 'totalProductos'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN productos.activo = true THEN 1 ELSE 0 END')), 'activos']
+      ],
+      group: ['categoria.categoria_id'],
+      raw: false
     });
 
-    const categories = Object.values(categoryMap);
+    // Formatear respuesta para compatibilidad con frontend
+    const categoriasFormateadas = categorias.map(cat => ({
+      categoria_id: cat.categoria_id,
+      categoria: cat.nombre,
+      descripcion_categoria: cat.descripcion || "",
+      totalProductos: parseInt(cat.dataValues.totalProductos) || 0,
+      activos: parseInt(cat.dataValues.activos) || 0
+    }));
 
-    res.json(categories);
+    res.json(categoriasFormateadas);
   } catch (error) {
     console.error("Error al obtener categorías:", error);
     res.status(500).json({ error: "Error en el servidor" });
@@ -944,20 +980,23 @@ app.get("/categories", async (req, res) => {
 // ACTUALIZAR CATEGORÍA Y DESCRIPCIÓN
 app.put("/categories/update", async (req, res) => {
   try {
-    const { categoria, nuevoNombre, nuevaDesc } = req.body;
+    const { categoria_id, nuevoNombre, nuevaDesc } = req.body;
 
-    // Buscar productos con esa categoría
-    const productos = await Producto.findAll({ where: { categoria } });
-
-    if (!productos.length) {
-      return res.status(404).json({ error: "Categoría no encontrada" });
+    if (!categoria_id || !nuevoNombre) {
+      return res.status(400).json({ error: "Faltan datos requeridos" });
     }
 
-    // Actualizar cada producto
-    for (let p of productos) {
-      p.categoria = nuevoNombre;
-      p.descripcion_categoria = nuevaDesc;
-      await p.save();
+    // Actualizar la categoría
+    const [numRowsUpdated] = await Categoria.update(
+      {
+        nombre: nuevoNombre,
+        descripcion: nuevaDesc || null
+      },
+      { where: { categoria_id: categoria_id } }
+    );
+
+    if (numRowsUpdated === 0) {
+      return res.status(404).json({ error: "Categoría no encontrada" });
     }
 
     res.json({ message: "Categoría actualizada correctamente" });
@@ -975,14 +1014,19 @@ app.post("/categories/new", async (req, res) => {
     const { categoria, descripcion_categoria, productos } = req.body;
     const idsProductos = JSON.parse(productos || "[]");
 
-    // Crear productos asociados o asignar la categoría a productos existentes
-    for (let id of idsProductos) {
-      const p = await Producto.findByPk(id);
-      if (p) {
-        p.categoria = categoria;
-        p.descripcion_categoria = descripcion_categoria;
-        await p.save();
-      }
+    // Crear la nueva categoría
+    const nuevaCategoria = await Categoria.create({
+      nombre: categoria,
+      descripcion: descripcion_categoria || null,
+      nueva_categoria: true
+    });
+
+    // Actualizar productos seleccionados con la nueva categoría
+    if (idsProductos.length > 0) {
+      await Producto.update(
+        { categoria_id: nuevaCategoria.categoria_id },
+        { where: { id_producto: idsProductos } }
+      );
     }
 
     res.json({ message: "Categoría creada correctamente" });
@@ -1002,25 +1046,28 @@ app.get("/products", async (req, res) => {
   }
 });
 
-// actulizar categorias de los productos seleccionados
+// actualizar categorias de los productos seleccionados
 app.put("/categories/update-products", async (req, res) => {
   try {
-    const { productoIds, categoria, descripcion_categoria } = req.body;
+    const { productoIds, categoria_id, descripcion_categoria } = req.body;
 
-    if (!productoIds || productoIds.length === 0) {
-      return res.status(400).json({ error: "No se seleccionaron productos" });
+    if (!productoIds || productoIds.length === 0 || !categoria_id) {
+      return res.status(400).json({ error: "Faltan datos requeridos" });
     }
 
-    // Usa id_producto, no id
-    const productos = await Producto.findAll({ where: { id_producto: productoIds } });
-
-    for (let p of productos) {
-      p.categoria = categoria;
-      p.descripcion_categoria = descripcion_categoria || p.descripcion_categoria;
-      await p.save();
+    // Verificar que la categoría existe
+    const categoria = await Categoria.findByPk(categoria_id);
+    if (!categoria) {
+      return res.status(404).json({ error: "Categoría no encontrada" });
     }
 
-    res.json({ message: "Productos actualizados correctamente" });
+    // Actualizar productos
+    const [numRowsUpdated] = await Producto.update(
+      { categoria_id: categoria_id },
+      { where: { id_producto: productoIds } }
+    );
+
+    res.json({ message: "Productos actualizados correctamente", productosAfectados: numRowsUpdated });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al actualizar productos" });
@@ -1172,86 +1219,125 @@ async function sincronizarBD() {
       await User.bulkCreate(usuarios);
     }
 
+    // 2. Crear Categorías
+    if ((await Categoria.count()) === 0) {
+      console.log("Creando categorías...");
+      
+      const categorias = [
+        {
+          nombre: "Pociones y Elixires Místicos",
+          descripcion: "Consumibles mágicos que restauran vida, energía o potencian habilidades.",
+          nueva_categoria: false
+        },
+        {
+          nombre: "Armas Encantadas",
+          descripcion: "Armas imbuidas con magia que otorgan poderes especiales y daño elemental.",
+          nueva_categoria: false
+        },
+        {
+          nombre: "Armaduras y Escudos Protectores",
+          descripcion: "Equipamiento defensivo que protege contra ataques físicos y mágicos.",
+          nueva_categoria: false
+        },
+        {
+          nombre: "Artefactos y Reliquias Ancestrales",
+          descripcion: "Objetos únicos con poderes especiales y historias legendarias.",
+          nueva_categoria: false
+        },
+        {
+          nombre: "Gemas y Cristales Mágicos",
+          descripcion: "Piedras preciosas que potencian hechizos y habilidades mágicas.",
+          nueva_categoria: true
+        },
+        {
+          nombre: "Grimorios Antiguos",
+          descripcion: "Libros de hechizos que contienen conocimiento mágico ancestral.",
+          nueva_categoria: true
+        }
+      ];
+      
+      await Categoria.bulkCreate(categorias);
+    }
 
-    // 2. Crear Productos (50)
-    const productos = [
+
+    // 3. Crear Productos (50)
+    if ((await Producto.count()) === 0) {
+      console.log("Creando productos...");
+      
+      // Obtener categorías para asignar IDs
+      const categoriasPociones = await Categoria.findOne({ where: { nombre: "Pociones y Elixires Místicos" } });
+      const categoriasArmas = await Categoria.findOne({ where: { nombre: "Armas Encantadas" } });
+      const categoriasArmaduras = await Categoria.findOne({ where: { nombre: "Armaduras y Escudos Protectores" } });
+      const categoriasArtefactos = await Categoria.findOne({ where: { nombre: "Artefactos y Reliquias Ancestrales" } });
+      const categoriasGemas = await Categoria.findOne({ where: { nombre: "Gemas y Cristales Mágicos" } });
+      const categoriasGrimorios = await Categoria.findOne({ where: { nombre: "Grimorios Antiguos" } });
+      
+
+      const productos = [
       // Pociones (Viejas)
-      {"nombre":"Poción de Curación","descripcion":"Restaura 50 PS.","precio":25,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_curacion.png","rareza":"Común","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Elixir de Maná","descripcion":"Recupera 40 PM.","precio":30,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/elixir_mana.png","rareza":"Común","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Poción de Fuerza","descripcion":"Aumenta ataque.","precio":40,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_fuerza.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Poción de Velocidad","descripcion":"Aumenta velocidad.","precio":70,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_velocidad.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Elixir de Vitalidad","descripcion":"Salud máxima +.","precio":80,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/elixir_vitalidad.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Poción de Sueño","descripcion":"Duerme 10s.","precio":90,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_sueno.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Elixir del Sabio","descripcion":"Poder mágico +15.","precio":100,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/elixir_sabio.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Poción de Invisibilidad","descripcion":"Invisible 60s.","precio":120,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_invisibilidad.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Elixir de Resistencia","descripcion":"Reduce daño 20%.","precio":55,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/elixir_resistencia.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":false},
-      {"nombre":"Poción Antídoto","descripcion":"Cura veneno.","precio":45,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_antidoto.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":false},
+      {"nombre":"Poción de Curación","descripcion":"Restaura 50 PS.","precio":25,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_curacion.png","rareza":"Común","nuevo_producto":false},
+      {"nombre":"Elixir de Maná","descripcion":"Recupera 40 PM.","precio":30,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/elixir_mana.png","rareza":"Común","nuevo_producto":false},
+      {"nombre":"Poción de Fuerza","descripcion":"Aumenta ataque.","precio":40,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_fuerza.png","rareza":"Raro","nuevo_producto":false},
+      {"nombre":"Poción de Velocidad","descripcion":"Aumenta velocidad.","precio":70,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_velocidad.png","rareza":"Raro","nuevo_producto":false},
+      {"nombre":"Elixir de Vitalidad","descripcion":"Salud máxima +.","precio":80,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/elixir_vitalidad.png","rareza":"Épico","nuevo_producto":false},
+      {"nombre":"Poción de Sueño","descripcion":"Duerme 10s.","precio":90,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_sueno.png","rareza":"Épico","nuevo_producto":false},
+      {"nombre":"Elixir del Sabio","descripcion":"Poder mágico +15.","precio":100,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/elixir_sabio.png","rareza":"Épico","nuevo_producto":false},
+      {"nombre":"Poción de Invisibilidad","descripcion":"Invisible 60s.","precio":120,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_invisibilidad.png","rareza":"Épico","nuevo_producto":false},
+      {"nombre":"Elixir de Resistencia","descripcion":"Reduce daño 20%.","precio":55,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/elixir_resistencia.png","rareza":"Raro","nuevo_producto":false},
+      {"nombre":"Poción Antídoto","descripcion":"Cura veneno.","precio":45,"categoria_id":categoriasPociones.categoria_id,"imagen_url":"/images/pocion_antidoto.png","rareza":"Raro","nuevo_producto":false},
 
     // Armas (Viejas)
-    {"nombre":"Espada del Dragón","descripcion":"Fuego de dragón.","precio":500,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/espada_dragon.png","rareza":"Legendario","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Arco Elfico","descripcion":"Gran precisión.","precio":450,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/arco_elfico.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Daga de Sombras","descripcion":"Silenciosa.","precio":300,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/daga_sombras.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Martillo del Trueno","descripcion":"Invoca rayos.","precio":600,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/martillo_trueno.png","rareza":"Legendario","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Lanza de Hielo","descripcion":"Congela.","precio":350,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/lanza_hielo.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Espada Rúnica","descripcion":"Corta defensas.","precio":550,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/espada_runica.png","rareza":"Legendario","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Hacha del Coloso","descripcion":"Gran devastación.","precio":650,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/hacha_coloso.png","rareza":"Legendario","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Ballesta Mágica","descripcion":"Proyectiles mágicos.","precio":480,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/ballesta_magica.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Katana Espiritual","descripcion":"Filo espiritual.","precio":520,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/katana_espiritual.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":false},
-    {"nombre":"Maza de Obsidiana","descripcion":"Rompe armaduras.","precio":600,"categoria":"Armas Encantadas","descripcion_categoria":"Armas imbuidas con magia que otorgan poderes especiales y daño elemental.","imagen_url":"/images/maza_obsidiana.png","rareza":"Legendario","nuevo_producto":false,"nueva_categoria":false},
+    {"nombre":"Espada del Dragón","descripcion":"Fuego de dragón.","precio":500,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/espada_dragon.png","rareza":"Legendario","nuevo_producto":false},
+    {"nombre":"Arco Elfico","descripcion":"Gran precisión.","precio":450,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/arco_elfico.png","rareza":"Épico","nuevo_producto":false},
+    {"nombre":"Daga de Sombras","descripcion":"Silenciosa.","precio":300,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/daga_sombras.png","rareza":"Raro","nuevo_producto":false},
+    {"nombre":"Martillo del Trueno","descripcion":"Invoca rayos.","precio":600,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/martillo_trueno.png","rareza":"Legendario","nuevo_producto":false},
+    {"nombre":"Lanza de Hielo","descripcion":"Congela.","precio":350,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/lanza_hielo.png","rareza":"Épico","nuevo_producto":false},
+    {"nombre":"Espada Rúnica","descripcion":"Corta defensas.","precio":550,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/espada_runica.png","rareza":"Legendario","nuevo_producto":false},
+    {"nombre":"Hacha del Coloso","descripcion":"Gran devastación.","precio":650,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/hacha_coloso.png","rareza":"Legendario","nuevo_producto":false},
+    {"nombre":"Ballesta Mágica","descripcion":"Proyectiles mágicos.","precio":480,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/ballesta_magica.png","rareza":"Épico","nuevo_producto":false},
+    {"nombre":"Katana Espiritual","descripcion":"Filo espiritual.","precio":520,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/katana_espiritual.png","rareza":"Épico","nuevo_producto":false},
+    {"nombre":"Maza de Obsidiana","descripcion":"Rompe armaduras.","precio":600,"categoria_id":categoriasArmas.categoria_id,"imagen_url":"/images/maza_obsidiana.png","rareza":"Legendario","nuevo_producto":false},
 
-    // Grimorios (Nueva Categoría)
-    {"nombre":"Grimorio de Fuego","descripcion":"Hechizos fuego.","precio":200,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_fuego.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":true},
-    {"nombre":"Grimorio de Hielo","descripcion":"Magia hielo.","precio":200,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_hielo.png","rareza":"Raro","nuevo_producto":false,"nueva_categoria":true},
-    {"nombre":"Grimorio de Oscuridad","descripcion":"Invoca sombras.","precio":300,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_oscuridad.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":true},
-    {"nombre":"Grimorio de Luz","descripcion":"Curación.","precio":250,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_luz.png","rareza":"Épico","nuevo_producto":false,"nueva_categoria":true},
-    {"nombre":"Grimorio del Tiempo","descripcion":"Ralentiza enemigos.","precio":400,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_tiempo.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Grimorio de Invocación","descripcion":"Invoca criaturas.","precio":350,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_invocacion.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Grimorio de Sangre","descripcion":"Sacrificio vital.","precio":500,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_sangre.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Grimorio Arcano","descripcion":"Secretos prohibidos.","precio":600,"categoria":"Grimorios Antiguos","descripcion_categoria":"Libros que contienen hechizos antiguos y secretos mágicos.","imagen_url":"/images/grimorio_arcano.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":false},
+      // Grimorios (Grimorios Antiguos)
+      {"nombre":"Grimorio de Fuego","descripcion":"Hechizos fuego.","precio":200,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_fuego.png","rareza":"Raro","nuevo_producto":false},
+      {"nombre":"Grimorio de Hielo","descripcion":"Magia hielo.","precio":200,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_hielo.png","rareza":"Raro","nuevo_producto":false},
+      {"nombre":"Grimorio de Oscuridad","descripcion":"Invoca sombras.","precio":300,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_oscuridad.png","rareza":"Épico","nuevo_producto":false},
+      {"nombre":"Grimorio de Luz","descripcion":"Curación.","precio":250,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_luz.png","rareza":"Épico","nuevo_producto":false},
+      {"nombre":"Grimorio del Tiempo","descripcion":"Ralentiza enemigos.","precio":400,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_tiempo.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Grimorio de Invocación","descripcion":"Invoca criaturas.","precio":350,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_invocacion.png","rareza":"Épico","nuevo_producto":true},
+      {"nombre":"Grimorio de Sangre","descripcion":"Sacrificio vital.","precio":500,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_sangre.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Grimorio Arcano","descripcion":"Secretos prohibidos.","precio":600,"categoria_id":categoriasGrimorios.categoria_id,"imagen_url":"/images/grimorio_arcano.png","rareza":"Legendario","nuevo_producto":true},
 
-    // Cristales (Nueva Categoría)
-    {"nombre":"Cristal de Vida","descripcion":"Salud +20.","precio":150,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_vida.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Cristal de Energía","descripcion":"Mana rapido.","precio":180,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_energia.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Cristal de Fuego","descripcion":"Ataque fuego.","precio":160,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_fuego.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Cristal de Hielo","descripcion":"Defensa fuego.","precio":160,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_hielo.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Cristal de Rayo","descripcion":"Velocidad ataque.","precio":200,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_rayo.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Cristal de Tierra","descripcion":"Resistencia física.","precio":170,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_tierra.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Cristal de Oscuridad","descripcion":"Ataque sombrío.","precio":210,"categoria":"Cristales Elementales","descripcion_categoria":"Cristales mágicos que potencian atributos y habilidades elementales.","imagen_url":"/images/cristal_oscuridad.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":false},
+      // Cristales (Gemas)
+      {"nombre":"Cristal de Vida","descripcion":"Salud +20.","precio":150,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_vida.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Cristal de Energía","descripcion":"Mana rapido.","precio":180,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_energia.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Cristal de Fuego","descripcion":"Ataque fuego.","precio":160,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_fuego.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Cristal de Hielo","descripcion":"Defensa fuego.","precio":160,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_hielo.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Cristal de Rayo","descripcion":"Velocidad ataque.","precio":200,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_rayo.png","rareza":"Épico","nuevo_producto":true},
+      {"nombre":"Cristal de Tierra","descripcion":"Resistencia física.","precio":170,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_tierra.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Cristal de Oscuridad","descripcion":"Ataque sombrío.","precio":210,"categoria_id":categoriasGemas.categoria_id,"imagen_url":"/images/cristal_oscuridad.png","rareza":"Épico","nuevo_producto":true},
 
-    // Reliquias (Nueva Categoría)
-    {"nombre":"Amuleto del Guardián","descripcion":"Protección.","precio":250,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/amuleto_guardian.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Anillo de la Fortuna","descripcion":"Más tesoros.","precio":350,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/anillo_fortuna.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Medallón de Sabiduría","descripcion":"Exp +20%.","precio":400,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/medallon_sabiduria.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Báculo del Alma","descripcion":"Poder +30.","precio":500,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/baculo_alma.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Corona del Rey","descripcion":"Liderazgo.","precio":600,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/corona_rey.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Amuleto del Fénix","descripcion":"Resucita.","precio":800,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/amuleto_fenix.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Cáliz de la Eternidad","descripcion":"Regenera.","precio":900,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/calis_eternidad.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":true},
-    {"nombre":"Capa de las Sombras","descripcion":"Camuflaje.","precio":700,"categoria":"Reliquias y Artefactos Legendarios","descripcion_categoria":"Objetos únicos con poderes extraordinarios y propiedades mágicas.","imagen_url":"/images/capa_sombras.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":true},
+      // Reliquias (Artefactos)
+      {"nombre":"Amuleto del Guardián","descripcion":"Protección.","precio":250,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/amuleto_guardian.png","rareza":"Épico","nuevo_producto":true},
+      {"nombre":"Anillo de la Fortuna","descripcion":"Más tesoros.","precio":350,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/anillo_fortuna.png","rareza":"Épico","nuevo_producto":true},
+      {"nombre":"Medallón de Sabiduría","descripcion":"Exp +20%.","precio":400,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/medallon_sabiduria.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Báculo del Alma","descripcion":"Poder +30.","precio":500,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/baculo_alma.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Corona del Rey","descripcion":"Liderazgo.","precio":600,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/corona_rey.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Amuleto del Fénix","descripcion":"Resucita.","precio":800,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/amuleto_fenix.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Cáliz de la Eternidad","descripcion":"Regenera.","precio":900,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/calis_eternidad.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Capa de las Sombras","descripcion":"Camuflaje.","precio":700,"categoria_id":categoriasArtefactos.categoria_id,"imagen_url":"/images/capa_sombras.png","rareza":"Épico","nuevo_producto":true},
 
-    // Armaduras (Nuevos Productos, Categoria Vieja/Mezclada)
-    {"nombre":"Armadura de Dragón","descripcion":"Defensa fuego.","precio":1000,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/armadura_dragon.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Escudo de Cristal","descripcion":"Absorbe daño.","precio":700,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/escudo_cristal.png","rareza":"Épico","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Casco de Guerra","descripcion":"Defensa +15.","precio":400,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/casco_guerra.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Botas del Viento","descripcion":"Velocidad.","precio":450,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/botas_viento.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Guantes del Guerrero","descripcion":"Fuerza +10.","precio":300,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/guantes_guerrero.png","rareza":"Raro","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Armadura Sagrada","descripcion":"Protección luz.","precio":1200,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/armadura_sagrada.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":false},
-    {"nombre":"Escudo Solar","descripcion":"Repele magia.","precio":950,"categoria":"Armaduras y Escudos","descripcion_categoria":"Equipamiento defensivo que protege y potencia al usuario en combate.","imagen_url":"/images/escudo_solar.png","rareza":"Legendario","nuevo_producto":true,"nueva_categoria":false}
-  ];
-    if ((await Producto.count()) === 0) {
-      console.log("Creando 50 productos de ejemplo...");
-      // Quitamos los campos extra para que coincida con el modelo
-      const productosParaCrear = productos.map(p => ({
-        nombre: p.nombre,
-        descripcion: p.descripcion,
-        precio: p.precio,
-        categoria: p.categoria,
-        imagen_url: p.imagen_url,
-        rareza: p.rareza,
-        nuevo_producto: p.nuevo_producto,
-        nueva_categoria: p.nueva_categoria,
-        descripcion_categoria: p.descripcion_categoria,
-      }));
-      await Producto.bulkCreate(productosParaCrear);
+      // Armaduras
+      {"nombre":"Armadura de Dragón","descripcion":"Defensa fuego.","precio":1000,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/armadura_dragon.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Escudo de Cristal","descripcion":"Absorbe daño.","precio":700,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/escudo_cristal.png","rareza":"Épico","nuevo_producto":true},
+      {"nombre":"Casco de Guerra","descripcion":"Defensa +15.","precio":400,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/casco_guerra.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Botas del Viento","descripcion":"Velocidad.","precio":450,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/botas_viento.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Guantes del Guerrero","descripcion":"Fuerza +10.","precio":300,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/guantes_guerrero.png","rareza":"Raro","nuevo_producto":true},
+      {"nombre":"Armadura Sagrada","descripcion":"Protección luz.","precio":1200,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/armadura_sagrada.png","rareza":"Legendario","nuevo_producto":true},
+      {"nombre":"Escudo Solar","descripcion":"Repele magia.","precio":950,"categoria_id":categoriasArmaduras.categoria_id,"imagen_url":"/images/escudo_solar.png","rareza":"Legendario","nuevo_producto":true}
+    ];
+    
+    await Producto.bulkCreate(productos);
     }
 
     // 3. Crear Órdenes

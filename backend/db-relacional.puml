@@ -1,0 +1,77 @@
+@startuml
+skinparam linetype ortho
+
+object User {
+  
+user_id : INTEGER--
+nombre : STRING
+email : STRING
+contrasena : STRING
+activo : BOOLEAN
+}
+
+object Pago {
+  
+pago_id : INTEGER--
+fecha_pago : DATE
+estado_pago : STRING
+metodo_pago : STRING
+}
+
+object Envio {
+  
+entrega_id : INTEGER--
+nombre_envio : STRING
+metodo_envio : FLOAT
+ciudad : STRING
+direccion : STRING
+}
+
+object Categoria {
+  
+categoria_id : INTEGER--
+nombre : STRING
+descripcion : STRING
+nueva_categoria : BOOLEAN
+}
+
+object Producto {
+  
+id_producto : INTEGER--
+nombre : STRING
+descripcion : TEXT
+precio : FLOAT
+imagen_url : STRING
+rareza : STRING
+nuevo_producto : BOOLEAN
+activo : BOOLEAN
+categoria_id : INTEGER
+}
+
+object Orden {
+  
+id_orden : INTEGER--
+usuario_id : INTEGER
+pago_id : INTEGER
+envio_id : INTEGER
+fecha_orden : DATE
+estado_orden : STRING
+}
+
+object OrdenProducto {
+  
+id_orden_producto : INTEGER--
+cantidad : INTEGER
+subtotal : FLOAT
+orden_id : INTEGER
+producto_id : INTEGER
+}
+
+User --o{ Orden
+Pago -- Orden
+Envio -- Orden
+Orden --o{ OrdenProducto
+Producto --o{ OrdenProducto
+Categoria --o{ Producto
+
+@enduml

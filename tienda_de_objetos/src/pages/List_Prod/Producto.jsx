@@ -36,7 +36,7 @@ export const Producto = () => {
           precio: parseFloat(item.precio),
           imagen: item.imagen_url,
           rareza: item.rareza || "Común",
-          categoria: item.categoria || "General",
+          categoria: item.categoria?.nombre || "General", // Usar nombre de la relación
           descripcion: item.descripcion
         }));
 

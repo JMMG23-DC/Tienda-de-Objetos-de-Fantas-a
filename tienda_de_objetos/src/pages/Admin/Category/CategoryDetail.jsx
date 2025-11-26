@@ -18,8 +18,8 @@ export default function CategoryList() {
 
   // FILTRO
   const filtradas = categories.filter(c =>
-    c.nombre.toLowerCase().includes(filter.toLowerCase()) ||
-    (c.descripcion?.toLowerCase().includes(filter.toLowerCase()))
+    c.categoria.toLowerCase().includes(filter.toLowerCase()) ||
+    (c.descripcion_categoria?.toLowerCase().includes(filter.toLowerCase()))
   );
 
   // PAGINACIÓN

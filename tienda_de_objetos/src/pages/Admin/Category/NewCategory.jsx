@@ -46,13 +46,13 @@ export default function NewCategory() {
     setError("");
 
     try {
-      const res = await fetch("http://3.131.85.192:3000/categories/update-products", {
-        method: "PUT",
+      const res = await fetch("http://3.131.85.192:3000/categories/new", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productoIds: productosSeleccionados.map(p => p.id_producto), // clave correcta
           categoria,
-          descripcion_categoria: descripcion
+          descripcion_categoria: descripcion,
+          productos: JSON.stringify(productosSeleccionados.map(p => p.id_producto))
         }),
       });
 

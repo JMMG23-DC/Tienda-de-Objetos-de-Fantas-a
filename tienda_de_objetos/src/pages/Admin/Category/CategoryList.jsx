@@ -31,7 +31,7 @@ export default function CategoryList() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          categoria: cat.categoria, // nombre original de la categoría
+          categoria_id: cat.categoria_id, // Usar categoria_id
           nuevoNombre,
           nuevaDesc
         })
@@ -91,7 +91,7 @@ export default function CategoryList() {
           {paginatedCategories.map((cat, index) => {
             const globalIndex = (page - 1) * pageSize + index + 1;
             return (
-              <tr key={cat.categoria} style={{ borderBottom: "1px solid #eee" }}>
+              <tr key={cat.categoria_id || cat.categoria} style={{ borderBottom: "1px solid #eee" }}>
                 <td style={{ padding: 10 }}>{globalIndex}</td>
                 <td style={{ padding: 10 }}>{cat.categoria}</td>
                 <td style={{ padding: 10 }}>{cat.descripcion_categoria || "—"}</td>

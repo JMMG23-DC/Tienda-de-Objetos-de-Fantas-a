@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../database/database.js";
+import { Categoria } from "./Categoria.js";
 
 export const Producto = sequelize.define("producto", {
   id_producto: {
@@ -26,21 +27,17 @@ export const Producto = sequelize.define("producto", {
     type: DataTypes.STRING,
     defaultValue: "Raro",
   },
-  categoria: {
-    type: DataTypes.STRING,
-
+  categoria_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Categoria,
+      key: "categoria_id",
+    },
   },
   nuevo_producto: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-  },
-  nueva_categoria: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-  descripcion_categoria: {
-    type: DataTypes.STRING,
-    allowNull: false,
   },
   activo: {
     type: DataTypes.BOOLEAN,
@@ -49,4 +46,14 @@ export const Producto = sequelize.define("producto", {
 }, {
   freezeTableName: true,
   timestamps: false 
+});
+
+// Relaciones
+Categoria.hasMany(Producto, {
+  foreignKey: "categoria_id",
+  sourceKey: "categoria_id",
+});
+Producto.belongsTo(Categoria, {
+  foreignKey: "categoria_id",
+  targetKey: "categoria_id",
 });

@@ -20,13 +20,16 @@ export const Home = () => {
                 const response = await fetch("http://3.131.85.192:3000/home-data");
                 if (!response.ok) throw new Error("Error al cargar datos del servidor");
                 const result = await response.json();
-                // Filtrar para mostrar solo productos activos
+                console.log("Datos recibidos del backend:", result);
+                // Filtrar para mostrar solo productos activos (o sin definir activo, que por defecto es true)
                 const filtered = {
                     topCategorias: result.topCategorias || [],
-                    topProductos: (result.topProductos || []).filter(p => p.activo === true),
-                    nuevosProductos: (result.nuevosProductos || []).filter(p => p.activo === true),
+                    topProductos: (result.topProductos || []).filter(p => p.activo !== false),
+                    
                     categoriasNuevas: result.categoriasNuevas || []
                 };
+                filtered.nuevosProductos = (result.nuevosProductos || []).filter(p => p.activo !== false);
+                console.log("Productos nuevos filtrados:", filtered.nuevosProductos);
                 setData(filtered);
             } catch (error) {
                 console.error("Error conectando con el backend:", error);
