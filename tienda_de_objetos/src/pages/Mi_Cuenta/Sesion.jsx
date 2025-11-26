@@ -4,68 +4,59 @@ import { TopBar } from "../Home/components/TopBar";
 import "./Sesion.css";
 
 export const Sesion = () => {
-  // 1. Obtener datos de localStorage
   const nombre = localStorage.getItem("nombre");
-  // const usuario_id = localStorage.getItem("usuario_id"); // Ya no se usa para la lógica principal
   const navigate = useNavigate();
 
-  // 2. Estados para las órdenes (que vendrán del fetch) y la carga
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const ordenesPorPagina = 5;
 
-  // 3. useEffect para cargar los datos del backend (con caché en localStorage)
   useEffect(() => {
-  if (!nombre) {
-    navigate("/login");
-    return;
-  }
-
-  const fetchOrdenes = async () => {
-    setLoading(true);
-
-    // 1. Mostrar datos en caché mientras se actualiza (opcional)
-    const ordenesEnCache = localStorage.getItem(`ordenes_${nombre}`);
-    if (ordenesEnCache) {
-      setOrdenes(JSON.parse(ordenesEnCache));
+    if (!nombre) {
+      navigate("/login");
+      return;
     }
 
-    // 2. Intentar siempre traer la data nueva del backend
-    try {
-      const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
-      if (!response.ok) throw new Error("Error al cargar las órdenes");
-      const data = await response.json();
-      setOrdenes(data);
+    const fetchOrdenes = async () => {
+      setLoading(true);
 
-      // 3. Guardar en caché
-      localStorage.setItem(`ordenes_${nombre}`, JSON.stringify(data));
-    } catch (error) {
-      console.error("Error al actualizar órdenes:", error);
-      // Opcional: si no hay caché, mostrar mensaje de error
-      if (!ordenesEnCache) setOrdenes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      // 1️⃣ Mostrar datos en caché mientras se actualiza
+      const ordenesEnCache = localStorage.getItem(`ordenes_${nombre}`);
+      if (ordenesEnCache) {
+        setOrdenes(JSON.parse(ordenesEnCache));
+      }
 
-  fetchOrdenes();
-}, [nombre, navigate]);
+      // 2️⃣ Traer siempre la data nueva del backend
+      try {
+        const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
+        if (!response.ok) throw new Error("Error al cargar las órdenes");
+        const data = await response.json();
+        setOrdenes(data);
+        localStorage.setItem(`ordenes_${nombre}`, JSON.stringify(data));
+      } catch (error) {
+        console.error("Error al actualizar órdenes:", error);
+        if (!ordenesEnCache) setOrdenes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // 4. Ordenar órdenes por estado (Pendiente → Cancelado → Completado)
+    fetchOrdenes();
+  }, [nombre, navigate]);
+
+  // 🔹 Ordenar órdenes por estado (Pendiente → Cancelado → Completado)
   const ordenesOrdenadas = [...ordenes].sort((a, b) => {
     const prioridad = { "Pendiente": 0, "Cancelado": 1, "Completado": 2 };
     return (prioridad[a.estado] || 3) - (prioridad[b.estado] || 3);
   });
 
-  // 5. Lógica de Paginación (ahora usa el estado 'ordenes')
-  const [paginaActual, setPaginaActual] = useState(1);
-  const ordenesPorPagina = 5;
+  // 🔹 Paginación
   const indiceInicial = (paginaActual - 1) * ordenesPorPagina;
   const indiceFinal = indiceInicial + ordenesPorPagina;
   const ordenesActuales = ordenesOrdenadas.slice(indiceInicial, indiceFinal);
   const totalPaginas = Math.max(1, Math.ceil(ordenesOrdenadas.length / ordenesPorPagina));
 
-  // Si las órdenes cambian, aseguramos que la página actual sea válida (volver a 1)
-  // Esto evita que paginaActual > totalPaginas cuando se filtran o actualizan datos
   useEffect(() => {
     setPaginaActual(1);
   }, [ordenes]);
@@ -77,15 +68,13 @@ export const Sesion = () => {
     if (paginaActual < totalPaginas) setPaginaActual(paginaActual + 1);
   };
 
-  // 5. Cerrar Sesión (Limpia ambos items por si acaso)
   const cerrar_sesion = () => {
     localStorage.removeItem("nombre");
-    localStorage.removeItem("usuario_id"); // <-- Se deja para limpiar
-    localStorage.removeItem(`ordenes_${nombre}`); // <-- Limpiar también el caché de órdenes
+    localStorage.removeItem("usuario_id");
+    localStorage.removeItem(`ordenes_${nombre}`);
     navigate("/");
   };
 
-  // 6. Manejo del estado de carga (Loading)
   if (loading) {
     return (
       <>
@@ -97,7 +86,6 @@ export const Sesion = () => {
     );
   }
 
-  // 7. Renderizado (JSX)
   return (
     <>
       <TopBar />
@@ -113,7 +101,7 @@ export const Sesion = () => {
               Cambiar Contraseña
             </button>
             <button onClick={cerrar_sesion} className="sesion-btn" style={{ width: "100%" }}>
-              Cerrar Sesion
+              Cerrar Sesión
             </button>
           </div>
 
@@ -121,15 +109,12 @@ export const Sesion = () => {
           <div className="sesion-ordenes">
             <h2>Mis Órdenes Recientes</h2>
 
-            {/* Manejo si no hay órdenes */}
             {ordenes.length === 0 ? (
               <p>No tienes órdenes recientes.</p>
             ) : (
               <>
                 <div className="ordenes-lista">
-                  {/* Iteramos sobre las órdenes de la paginación */}
                   {ordenesActuales.map((orden) => (
-                    // Cada orden ahora es un grupo de productos
                     <div className="orden-grupo" key={orden.id_orden}>
                       <div className="orden-info">
                         <strong>Orden #{orden.id_orden}</strong>
@@ -137,7 +122,6 @@ export const Sesion = () => {
                         <p>Fecha: {new Date(orden.fecha_orden).toLocaleDateString()}</p>
                       </div>
 
-                      {/* Iteramos sobre los productos DENTRO de la orden */}
                       {orden.productos.map(producto => (
                         <div className="orden-item" key={producto.id_producto}>
                           <img
@@ -145,7 +129,6 @@ export const Sesion = () => {
                             src={producto.imagen_url || 'https://via.placeholder.com/150'}
                             alt={producto.nombre}
                           />
-                          {/* */}
                           <div>
                             <h3>{producto.nombre}</h3>
                             <p>Cantidad: {producto.orden_producto.cantidad}</p>
@@ -153,9 +136,10 @@ export const Sesion = () => {
                           </div>
                         </div>
                       ))}
-                        <button className="orden-butt" onClick={() => navigate("/OrderDetail/" + orden.id_orden)}>
-                         Ver detalle de la orden
-                        </button>
+
+                      <button className="orden-butt" onClick={() => navigate("/OrderDetail/" + orden.id_orden)}>
+                        Ver detalle de la orden
+                      </button>
                     </div>
                   ))}
                 </div>
