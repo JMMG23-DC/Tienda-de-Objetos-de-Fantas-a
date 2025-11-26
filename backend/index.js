@@ -1,4 +1,6 @@
 import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
 import { sequelize } from "./database/database.js";
 import cors from "cors";
 import { Op } from "sequelize";
@@ -124,6 +126,116 @@ app.get("/home-data", async (req, res) => {
   }
 });
 
+// ADMIN: ventas por mes (suma de subtotales) -----------------------------------
+app.get('/admin/sales-by-month', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const start = startDate ? new Date(`${startDate}T00:00:00Z`) : new Date('2025-01-01T00:00:00Z');
+    const end = endDate ? new Date(`${endDate}T23:59:59Z`) : new Date('2025-12-31T23:59:59Z');
+
+    // Obtener todas las ventas (orden_producto) en el rango y sus órdenes
+    const ventas = await OrdenProducto.findAll({
+      include: [{ model: Orden }]
+    });
+
+    // Filtrar por fecha y estado
+    const ventasFiltradas = ventas.filter(v => {
+      if (!v.orden || !v.orden.fecha_orden) return false;
+      const fecha = new Date(v.orden.fecha_orden);
+      if (fecha < start || fecha > end) return false;
+      // excluir órdenes canceladas
+      if (v.orden.estado === 'Cancelado') return false;
+      return true;
+    });
+
+    // Inicializar mapa por mes-año
+    const monthsMap = new Map();
+    const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+    // Rellenar meses entre start and end con 0
+    const startMonth = start.getUTCMonth() + 1;
+    const startYear = start.getUTCFullYear();
+    const endMonth = end.getUTCMonth() + 1;
+    const endYear = end.getUTCFullYear();
+    
+    for (let y = startYear; y <= endYear; y++) {
+      const mStart = y === startYear ? startMonth : 1;
+      const mEnd = y === endYear ? endMonth : 12;
+      for (let m = mStart; m <= mEnd; m++) {
+        const key = `${y}-${m}`;
+        monthsMap.set(key, 0);
+      }
+    }
+
+    // Sumar subtotales por mes
+    for (const v of ventasFiltradas) {
+      const fecha = new Date(v.orden.fecha_orden);
+      const year = fecha.getUTCFullYear();
+      const month = fecha.getUTCMonth() + 1;
+      const key = `${year}-${month}`;
+      const prev = monthsMap.get(key) || 0;
+      const subtotal = parseFloat(v.subtotal) || 0;
+      monthsMap.set(key, prev + subtotal);
+    }
+
+    // Construir array respuesta con etiquetas de mes
+    const result = [];
+    for (const [key, value] of monthsMap.entries()) {
+      const [y, m] = key.split('-').map(Number);
+      result.push({ month: monthNames[m-1], year: y, sales: parseFloat(value.toFixed(2)) });
+    }
+    
+    result.sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return monthNames.indexOf(a.month) - monthNames.indexOf(b.month);
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error en sales-by-month:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// ADMIN: usuarios por mes (conteo de users.createdAt) -------------------------
+app.get('/admin/users-by-month', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const start = startDate ? new Date(startDate) : new Date(2025, 0, 1);
+    const end = endDate ? new Date(endDate) : new Date(2025, 11, 31, 23, 59, 59, 999);
+
+    const users = await User.findAll();
+
+    const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const monthsMap = new Map();
+
+    // Rellenar meses entre start and end
+    const s = new Date(start.getFullYear(), start.getMonth(), 1);
+    const e = new Date(end.getFullYear(), end.getMonth(), 1);
+    for (let d = new Date(s); d <= e; d.setMonth(d.getMonth() + 1)) {
+      const key = `${d.getFullYear()}-${d.getMonth()+1}`;
+      monthsMap.set(key, 0);
+    }
+
+    for (const u of users) {
+      const fecha = new Date(u.createdAt);
+      if (fecha < start || fecha > end) continue;
+      const key = `${fecha.getFullYear()}-${fecha.getMonth()+1}`;
+      monthsMap.set(key, (monthsMap.get(key) || 0) + 1);
+    }
+
+    const result = [];
+    for (const [key, value] of monthsMap.entries()) {
+      const [y, m] = key.split('-').map(Number);
+      result.push({ month: monthNames[m-1], year: y, users: value });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error en users-by-month:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
 
 
 
@@ -174,11 +286,13 @@ app.post("/api/ordenes", async (req, res) => {
 
     // 4. Insertar Productos
     for (const item of items) {
+      const cantidad = parseInt(item.cantidad) || 0;
+      const precio = parseFloat(item.precio) || 0;
       await OrdenProducto.create({
         orden_id: nuevaOrden.id_orden,
         producto_id: item.id_producto, // ID del producto
-        cantidad: item.cantidad,
-        subtotal: item.cantidad * item.precio
+        cantidad,
+        subtotal: cantidad * precio
       }, { transaction: t });
     }
 
@@ -521,8 +635,8 @@ app.put("/orders/:id/cancel", async (req, res) => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "20200812@aloe.ulima.edu.pe", // tu correo
-    pass: "hjztpfeqdqabolhn"            // tu contraseña de aplicación (sin espacios)
+    user: process.env.EMAIL_USER, // desde .env
+    pass: process.env.EMAIL_PASS  // desde .env
   }
 });
 
@@ -577,12 +691,9 @@ app.get("/admin/summary", async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     
-    // Si no hay fechas, usamos hoy por defecto
-    const start = startDate ? new Date(startDate) : new Date();
-    start.setHours(0, 0, 0, 0);
-    
-    const end = endDate ? new Date(endDate) : new Date();
-    end.setHours(23, 59, 59, 999);
+    // Parsear fechas correctamente
+    const start = startDate ? new Date(`${startDate}T00:00:00Z`) : new Date('2025-01-01T00:00:00Z');
+    const end = endDate ? new Date(`${endDate}T23:59:59Z`) : new Date('2025-12-31T23:59:59Z');
 
     // A. Conteo de Órdenes (Filtrado por fecha)
     const ordersCount = await Orden.count({
@@ -614,7 +725,7 @@ app.get("/admin/summary", async (req, res) => {
     res.json({ 
         orders: ordersCount, 
         newUsers: newUsersCount, 
-        totalIncome: totalIncome || 0 
+        totalIncome: parseFloat((totalIncome || 0).toFixed(2))
     });
 
   } catch (error) {
@@ -818,7 +929,7 @@ app.get("/categories", async (req, res) => {
         };
       }
       categoryMap[p.categoria].totalProductos += 1;
-      if (p.estado) categoryMap[p.categoria].activos += 1; // asumimos que 'estado' indica activo
+      if (p.activo) categoryMap[p.categoria].activos += 1; // 'activo' indica producto activo
     });
 
     const categories = Object.values(categoryMap);
@@ -1011,27 +1122,17 @@ app.get("/users/:id", async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function fechaEntre(inicio, fin) {
+  return new Date(inicio.getTime() + Math.random() * (fin.getTime() - inicio.getTime()));
+}
 
 // ================================================================================
+
+function fechaAleatoria(mes, year = 2025) {
+  const inicio = new Date(year, mes - 1, 1);
+  const fin = new Date(year, mes, 0, 23, 59, 59, 999);
+  return new Date(inicio.getTime() + Math.random() * (fin.getTime() - inicio.getTime()));
+}
 
 
 // CREACIÓN DE TABLAS Y ENTRADA DE DATOS
@@ -1045,21 +1146,34 @@ async function sincronizarBD() {
 
     // --- Creación de Dataset (Solo si las tablas están vacías) ---
 
-    // 1. Crear Usuarios (5)
+    // 1. Crear Usuarios: un Admin por defecto + usuarios aleatorios distribuidos en 2025
     if ((await User.count()) === 0) {
-      console.log("Creando usuarios de ejemplo...");
-      await User.bulkCreate([
-        { nombre: "Adrian", email: "adrian@example.com", contrasena: "12345" },
-        { nombre: "Rafa", email: "maria@example.com", contrasena: "12345" },
-        { nombre: "Admin", email: "carlos@example.com", contrasena: "12345" },
-        { nombre: "Ana Gomez", email: "ana@example.com", contrasena: "12345" },
-        { nombre: "Test User", email: "test@example.com", contrasena: "test" },
-      ]);
+      console.log("Creando usuario Admin y usuarios de ejemplo distribuidos en 2025...");
+
+      // Crear solo el usuario Admin explícitamente
+      await User.create(
+        { nombre: "Adrian", email: "adrian@example.com", contrasena: "12345" , createdAt: new Date(2025, 0, 1), updatedAt: new Date(2025, 0, 1)},
+        { nombre: "Admin", email: "admin@example.com", contrasena: "12345" , createdAt: new Date(2025, 0, 1), updatedAt: new Date(2025, 0, 1)});
+
+      // Generar N usuarios aleatorios
+      const N = 60; // cantidad de usuarios adicionales
+      const usuarios = [];
+      for (let i = 1; i <= N; i++) {
+        // nombre y email simples, únicos
+        const nombre = `User ${i}`;
+        const email = `user${i}@example.com`;
+        // fecha aleatoria en 2025 (mes 1-12)
+        const mes = 1 + Math.floor(Math.random() * 12);
+        const fecha = fechaAleatoria(mes, 2025);
+        usuarios.push({ nombre, email, contrasena: "test123", createdAt: fecha, updatedAt: fecha });
+      }
+
+      // Insertar todos los usuarios generados
+      await User.bulkCreate(usuarios);
     }
 
 
     // 2. Crear Productos (50)
-
     const productos = [
       // Pociones (Viejas)
       {"nombre":"Poción de Curación","descripcion":"Restaura 50 PS.","precio":25,"categoria":"Pociones y Elixires Místicos","descripcion_categoria":"Consumibles mágicos que restauran vida, energía o potencian habilidades.","imagen_url":"/images/pocion_curacion.png","rareza":"Común","nuevo_producto":false,"nueva_categoria":false},
@@ -1140,69 +1254,94 @@ async function sincronizarBD() {
       await Producto.bulkCreate(productosParaCrear);
     }
 
-    // 3. Crear Órdenes (20)
+    // 3. Crear Órdenes
     // Solo creamos órdenes si la tabla está vacía
     if ((await Orden.count()) === 0) {
-      console.log("Creando 20 órdenes de ejemplo...");
+      console.log("Generando órdenes para todos los usuarios...");
 
       const metodosPago = ["Tarjeta", "Yape", "PayPal", "Efectivo"];
       const estadosOrden = ["Pendiente", "Enviado", "Completado", "Cancelado"];
-      const ciudades = ["Minas Tirith", "La Comarca", "Rivendell", "Gondor", "Rohan"];
+      const ciudades = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
 
-      for (let i = 1; i <= 20; i++) {
-        // Asignar orden a un usuario (IDs 1 a 5)
-        const userId = (i % 5) + 1;
-        const estado = estadosOrden[i % estadosOrden.length];
-        
-        // Crear Pago
-        const pago = await Pago.create({
-          fecha_pago: new Date(),
-          estado_pago: (estado === "Pendiente" || estado === "Cancelado") ? "Pendiente" : "Completado",
-          metodo_pago: metodosPago[i % metodosPago.length],
-        });
+      const usuarios = await User.findAll();
+      // Obtener los productos reales desde la BD para usar sus `id_producto`
+      const productosDB = await Producto.findAll();
 
-        // Crear Envío
-        const envio = await Envio.create({
-          metodo_envio: (i % 2 === 0) ? "Delivery mágico" : "Recojo en tienda",
-          ciudad: ciudades[i % ciudades.length],
-          direccion: `Calle Falsa 123, ${ciudades[i % ciudades.length]}`,
-        });
+      // límite superior para generar fechas: fin de 2025
+      const fin2025 = new Date(2025, 11, 31, 23, 59, 59, 999);
 
-        // Crear Orden
-        const orden = await Orden.create({
-          usuario_id: userId,
-          pago_id: pago.pago_id,
-          envio_id: envio.entrega_id,
-          estado: estado,
-        });
+      for (const usuario of usuarios) {
+        const totalOrdenes = Math.floor(Math.random() * 7) + 2; // 2 a 8 órdenes
 
-        // Añadir productos a la orden
-        
-        // Producto 1 (ID de producto 1 a 10)
-        const prod1_idx = i % productos.length;
-        const prod1_cant = (i % 3) + 1; // Cantidad 1, 2 o 3
-        await OrdenProducto.create({
-          orden_id: orden.id_orden,
-          producto_id: prod1_idx + 1, // IDs de producto empiezan en 1
-          cantidad: prod1_cant,
-          subtotal: productos[prod1_idx].precio * prod1_cant,
-        });
+        for (let i = 0; i < totalOrdenes; i++) {
+          // Generar fecha en 2025: elegir un mes aleatorio entre enero (1) y diciembre (12)
+          const creado = new Date(usuario.createdAt);
+          const mes = 1 + Math.floor(Math.random() * 12); // 1 a 12 uniformemente
+          let fechaOrden = fechaAleatoria(mes, 2025);
 
-        // Añadir un segundo producto a las órdenes pares
-        if (i % 2 === 0) {
-          const prod2_idx = (i + 3) % productos.length;
-          const prod2_cant = 1;
-          await OrdenProducto.create({
-            orden_id: orden.id_orden,
-            producto_id: prod2_idx + 1,
-            cantidad: prod2_cant,
-            subtotal: productos[prod2_idx].precio * prod2_cant,
+          // Asegurar que la fecha de la orden no sea anterior a la creación del usuario
+          if (fechaOrden < creado) {
+            fechaOrden = fechaEntre(creado, fin2025);
+          }
+
+          const estado = estadosOrden[Math.floor(Math.random() * estadosOrden.length)];
+
+          // Crear PAGO
+          const pago = await Pago.create({
+            fecha_pago: fechaOrden,
+            estado_pago: estado === "Pendiente" || estado === "Cancelado" ? "Pendiente" : "Completado",
+            metodo_pago: metodosPago[Math.floor(Math.random() * metodosPago.length)],
+            createdAt: fechaOrden,
+            updatedAt: fechaOrden
           });
+
+          // Crear ENVÍO
+          const envio = await Envio.create({
+            metodo_envio: Math.random() < 0.5 ? "Delivery" : "Recojo en tienda",
+            ciudad: ciudades[Math.floor(Math.random() * ciudades.length)],
+            direccion: `Calle ${Math.floor(Math.random() * 900) + 100}`,
+            createdAt: fechaOrden,
+            updatedAt: fechaOrden
+          });
+
+          // Crear ORDEN
+          const orden = await Orden.create({
+            usuario_id: usuario.user_id,
+            pago_id: pago.pago_id,
+            envio_id: envio.entrega_id,
+            fecha_orden: fechaOrden,
+            estado,
+            createdAt: fechaOrden,
+            updatedAt: fechaOrden
+          });
+
+          // Productos: 1 a 3 por orden
+          const numProductos = Math.floor(Math.random() * 3) + 1;
+          // Seleccionar productos únicos para esta orden (sin reemplazo)
+          const shuffled = [...productosDB].sort(() => Math.random() - 0.5);
+          const seleccion = shuffled.slice(0, Math.min(numProductos, shuffled.length));
+
+          for (let j = 0; j < seleccion.length; j++) {
+            const productoDB = seleccion[j];
+            const cantidad = Math.floor(Math.random() * 3) + 1;
+            const precio = parseFloat(productoDB.precio) || 0;
+            const subtotal = cantidad * precio;
+
+            await OrdenProducto.create({
+              orden_id: orden.id_orden,
+              producto_id: productoDB.id_producto,
+              cantidad,
+              subtotal: parseFloat(subtotal.toFixed(2)),
+              createdAt: fechaOrden,
+              updatedAt: fechaOrden
+            });
+          }
         }
       }
+
+      console.log("Órdenes generadas correctamente.");
     }
 
-    console.log("Dataset de ejemplo listo.");
 
   } catch (error) {
     console.error(" Error en la conexión o sincronización:", error);
@@ -1212,5 +1351,5 @@ async function sincronizarBD() {
 // Iniciar servidor (Esta parte ya la tienes)
 app.listen(PORT, async () => {
   console.log(` Servidor funcionando en el puerto: ${PORT}`);
-  // await sincronizarBD();
+  await sincronizarBD();
 });

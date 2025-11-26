@@ -44,7 +44,23 @@ export const OrderDetail = () => {
       if (response.ok) {
         alert("Pedido cancelado exitosamente.");
         // Actualizar estado localmente para que el usuario vea el cambio al instante
-        setOrden({ ...orden, estado: "Cancelado" });
+        const ordenActualizada = { ...orden, estado: "Cancelado" };
+        setOrden(ordenActualizada);
+
+        // Actualizar también en localStorage
+        const nombre = localStorage.getItem("nombre");
+        if (nombre) {
+          const ordenesEnCache = localStorage.getItem(`ordenes_${nombre}`);
+          if (ordenesEnCache) {
+            const ordenes = JSON.parse(ordenesEnCache);
+            // Actualizar la orden en el array de órdenes del caché
+            const ordenesActualizadas = ordenes.map((ord) =>
+              ord.id_orden === parseInt(id) ? ordenActualizada : ord
+            );
+            // Guardar de vuelta en localStorage
+            localStorage.setItem(`ordenes_${nombre}`, JSON.stringify(ordenesActualizadas));
+          }
+        }
       } else {
         alert(data.error || "No se puede cancelar el pedido.");
       }
@@ -100,8 +116,8 @@ export const OrderDetail = () => {
           <div className="order-buttons">
             <Link to={`/Sesion`} className="orden-butt volver"> Volver </Link>
 
-            {/* Solo mostrar botón cancelar si no está entregado ni cancelado */}
-            {orden.estado !== "Entregado" && orden.estado !== "Cancelado" ? (
+            {/* Mostrar botón 'Cancelar Pedido' solo si la orden está pendiente */}
+            {orden.estado === "Pendiente" ? (
               <button className="orden-butt cancelar" onClick={handleCancelar}>
                 Cancelar Pedido
               </button>

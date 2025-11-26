@@ -42,9 +42,9 @@ export const Producto = sequelize.define("producto", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  estado: {
+  activo: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,
   }
 }, {
   freezeTableName: true,

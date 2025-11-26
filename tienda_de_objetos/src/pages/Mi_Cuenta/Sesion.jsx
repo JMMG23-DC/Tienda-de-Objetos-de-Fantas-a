@@ -13,7 +13,7 @@ export const Sesion = () => {
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 3. useEffect para cargar los datos del backend
+  // 3. useEffect para cargar los datos del backend (con caché en localStorage)
   useEffect(() => {
     // Si no hay NOMBRE, no está logueado
     if (!nombre) {
@@ -25,8 +25,17 @@ export const Sesion = () => {
     const fetchOrdenes = async () => {
       try {
         setLoading(true);
-        // --- ¡CAMBIO IMPORTANTE! ---
-        // Llamamos a la ruta del backend que usa el NOMBRE
+        
+        // 1. Intentar obtener del localStorage
+        const ordenesEnCache = localStorage.getItem(`ordenes_${nombre}`);
+        if (ordenesEnCache) {
+          const data = JSON.parse(ordenesEnCache);
+          setOrdenes(data);
+          setLoading(false);
+          return; // No hacer fetch si ya hay datos en caché
+        }
+        
+        // 2. Si no hay caché, hacer fetch del backend
         const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
         
         if (!response.ok) {
@@ -35,6 +44,9 @@ export const Sesion = () => {
         
         const data = await response.json();
         setOrdenes(data); // Guardamos las órdenes
+        
+        // 3. Guardar en localStorage para futuros accesos
+        localStorage.setItem(`ordenes_${nombre}`, JSON.stringify(data));
         
       } catch (error) {
         console.error(error);
@@ -46,13 +58,25 @@ export const Sesion = () => {
     fetchOrdenes();
   }, [nombre, navigate]); // Se ejecuta si el 'nombre' cambia
 
-  // 4. Lógica de Paginación (ahora usa el estado 'ordenes')
+  // 4. Ordenar órdenes por estado (Pendiente → Cancelado → Completado)
+  const ordenesOrdenadas = [...ordenes].sort((a, b) => {
+    const prioridad = { "Pendiente": 0, "Cancelado": 1, "Completado": 2 };
+    return (prioridad[a.estado] || 3) - (prioridad[b.estado] || 3);
+  });
+
+  // 5. Lógica de Paginación (ahora usa el estado 'ordenes')
   const [paginaActual, setPaginaActual] = useState(1);
   const ordenesPorPagina = 5;
   const indiceInicial = (paginaActual - 1) * ordenesPorPagina;
   const indiceFinal = indiceInicial + ordenesPorPagina;
-  const ordenesActuales = ordenes.slice(indiceInicial, indiceFinal);
-  const totalPaginas = Math.ceil(ordenes.length / ordenesPorPagina);
+  const ordenesActuales = ordenesOrdenadas.slice(indiceInicial, indiceFinal);
+  const totalPaginas = Math.max(1, Math.ceil(ordenesOrdenadas.length / ordenesPorPagina));
+
+  // Si las órdenes cambian, aseguramos que la página actual sea válida (volver a 1)
+  // Esto evita que paginaActual > totalPaginas cuando se filtran o actualizan datos
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [ordenes]);
 
   const paginaAnterior = () => {
     if (paginaActual > 1) setPaginaActual(paginaActual - 1);
@@ -65,6 +89,7 @@ export const Sesion = () => {
   const cerrar_sesion = () => {
     localStorage.removeItem("nombre");
     localStorage.removeItem("usuario_id"); // <-- Se deja para limpiar
+    localStorage.removeItem(`ordenes_${nombre}`); // <-- Limpiar también el caché de órdenes
     navigate("/");
   };
 
@@ -116,7 +141,6 @@ export const Sesion = () => {
                     <div className="orden-grupo" key={orden.id_orden}>
                       <div className="orden-info">
                         <strong>Orden #{orden.id_orden}</strong>
-                        {/* */}
                         <span className={`estado ${orden.estado}`}>{orden.estado}</span>
                         <p>Fecha: {new Date(orden.fecha_orden).toLocaleDateString()}</p>
                       </div>
