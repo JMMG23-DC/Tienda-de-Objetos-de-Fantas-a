@@ -15,48 +15,40 @@ export const Sesion = () => {
 
   // 3. useEffect para cargar los datos del backend (con caché en localStorage)
   useEffect(() => {
-    // Si no hay NOMBRE, no está logueado
-    if (!nombre) {
-      navigate("/login");
-      return;
+  if (!nombre) {
+    navigate("/login");
+    return;
+  }
+
+  const fetchOrdenes = async () => {
+    setLoading(true);
+
+    // 1. Mostrar datos en caché mientras se actualiza (opcional)
+    const ordenesEnCache = localStorage.getItem(`ordenes_${nombre}`);
+    if (ordenesEnCache) {
+      setOrdenes(JSON.parse(ordenesEnCache));
     }
 
-    // Función async para hacer el fetch
-    const fetchOrdenes = async () => {
-      try {
-        setLoading(true);
-        
-        // 1. Intentar obtener del localStorage
-        const ordenesEnCache = localStorage.getItem(`ordenes_${nombre}`);
-        if (ordenesEnCache) {
-          const data = JSON.parse(ordenesEnCache);
-          setOrdenes(data);
-          setLoading(false);
-          return; // No hacer fetch si ya hay datos en caché
-        }
-        
-        // 2. Si no hay caché, hacer fetch del backend
-        const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
-        
-        if (!response.ok) {
-          throw new Error("Error al cargar las órdenes");
-        }
-        
-        const data = await response.json();
-        setOrdenes(data); // Guardamos las órdenes
-        
-        // 3. Guardar en localStorage para futuros accesos
-        localStorage.setItem(`ordenes_${nombre}`, JSON.stringify(data));
-        
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false); // Termina la carga (incluso si hay error)
-      }
-    };
+    // 2. Intentar siempre traer la data nueva del backend
+    try {
+      const response = await fetch(`http://3.131.85.192:3000/mis-ordenes/${nombre}`);
+      if (!response.ok) throw new Error("Error al cargar las órdenes");
+      const data = await response.json();
+      setOrdenes(data);
 
-    fetchOrdenes();
-  }, [nombre, navigate]); // Se ejecuta si el 'nombre' cambia
+      // 3. Guardar en caché
+      localStorage.setItem(`ordenes_${nombre}`, JSON.stringify(data));
+    } catch (error) {
+      console.error("Error al actualizar órdenes:", error);
+      // Opcional: si no hay caché, mostrar mensaje de error
+      if (!ordenesEnCache) setOrdenes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchOrdenes();
+}, [nombre, navigate]);
 
   // 4. Ordenar órdenes por estado (Pendiente → Cancelado → Completado)
   const ordenesOrdenadas = [...ordenes].sort((a, b) => {

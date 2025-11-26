@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { TopBar } from "../Home/components/TopBar";
 import { Footer } from "../Home/components/Footer";
 import "./checkout.css";
-import qrImage from "../../../public/vite.svg";
+
+const qrImage = "/vite.svg";
 
 const getFromLocalStorage = (key, defaultValue) => {
     const stored = localStorage.getItem(key);
