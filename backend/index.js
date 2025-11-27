@@ -656,8 +656,8 @@ app.put("/orders/:id/cancel", async (req, res) => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, // desde .env
-    pass: process.env.EMAIL_PASS  // desde .env
+    user: "20200812@aloe.ulima.edu.pe", // desde .env
+    pass: "sgtp vdwo ijpm dnik"  // desde .env
   }
 });
 
