@@ -322,6 +322,17 @@ app.post("/api/ordenes", async (req, res) => {
 
 
 
+app.get("/categoriassss", async (req, res) => {
+  try {
+    const categorias = await Categoria.findAll({
+      attributes: ["categoria_id", "nombre"]
+    });
+    res.json(categorias);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener categorías" });
+  }
+});
 
 
 
