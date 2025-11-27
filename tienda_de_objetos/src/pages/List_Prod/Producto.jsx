@@ -22,6 +22,11 @@ export const Producto = () => {
   const productosPorPagina = 6;
 
   // -----------------------------
+  // ESTADO PARA CATEGORÍAS DE LA BD
+  // -----------------------------
+  const [categoriasBack, setCategoriasBack] = useState([]);
+
+  // -----------------------------
   // 2. CARGAR PRODUCTOS DESDE LA BD
   // -----------------------------
   useEffect(() => {
@@ -36,7 +41,7 @@ export const Producto = () => {
           precio: parseFloat(item.precio),
           imagen: item.imagen_url,
           rareza: item.rareza || "Común",
-          categoria: item.categoria?.nombre || "General", // Usar nombre de la relación
+          categoria: item.categoria?.nombre || "General",
           descripcion: item.descripcion
         }));
 
@@ -50,6 +55,26 @@ export const Producto = () => {
     };
 
     fetchProductos();
+  }, []);
+
+  // -----------------------------
+  // 2.1 CARGAR CATEGORÍAS DESDE BACKEND
+  // -----------------------------
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const res = await fetch("http://3.131.85.192:3000/categoriassss");
+        const data = await res.json();
+
+        const lista = data.map(cat => cat.nombre);
+        setCategoriasBack(lista);
+
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+      }
+    };
+
+    fetchCategorias();
   }, []);
 
   // -----------------------------
@@ -118,9 +143,9 @@ export const Producto = () => {
   );
 
   // -----------------------------
-  // 7. OPCIONES ÚNICAS (categorías + rarezas)
+  // 7. OPCIONES ÚNICAS (CATEGORÍAS BD + RAREZAS)
   // -----------------------------
-  const categoriasUnicas = [...new Set(listaProductos.map(p => p.categoria))];
+  const categoriasUnicas = categoriasBack;
   const rarezasUnicas = [...new Set(listaProductos.map(p => p.rareza))];
 
   // -----------------------------
@@ -138,7 +163,6 @@ export const Producto = () => {
           {/* ------------------ SIDEBAR ------------------ */}
           <div className="sidebar">
 
-            {/* FILTROS */}
             <div className="filters-container">
               <h3>Opciones de Filtrado</h3>
 
