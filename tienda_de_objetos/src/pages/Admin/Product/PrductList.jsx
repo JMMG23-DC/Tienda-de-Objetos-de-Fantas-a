@@ -27,7 +27,7 @@ export default function ProductList() {
     fetchProducts();
   }, []);
 
-  // --- 2. ACTIVAR / DESACTIVAR (Conectado a BD) ---
+  // --- 2. ACTIVAR / DESACTIVAR ---
   const toggleProductStatus = async (id, currentStatus) => {
     try {
       const response = await fetch(`http://3.131.85.192:3000/products/${id}/toggle`, {
@@ -35,7 +35,6 @@ export default function ProductList() {
       });
       
       if (response.ok) {
-        // Actualizar localmente
         setProducts(products.map(p => 
           p.id_producto === id ? { ...p, activo: !currentStatus } : p
         ));
@@ -51,17 +50,14 @@ export default function ProductList() {
 
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
-    
-    // Usamos los nombres de campos reales de tu BD (id_producto, nombre, categoria de la relación)
+
     const idString = String(p.id_producto);
     const nombreString = p.nombre ? p.nombre.toLowerCase() : "";
-    const categoriaString = p.categoria ? p.categoria.nombre?.toLowerCase() : "";
 
     const idCoincide = idString.indexOf(filterText) !== -1;
     const nombreCoincide = nombreString.indexOf(filterText) !== -1;
-    const categoriaCoincide = categoriaString.indexOf(filterText) !== -1;
-    
-    if (idCoincide || nombreCoincide || categoriaCoincide) {
+
+    if (idCoincide || nombreCoincide) {
       filtered.push(p);
     }
   }
@@ -75,7 +71,7 @@ export default function ProductList() {
 
   for (let i = startIndex; i < endIndex; i++) {
     if (i < totalProducts) {
-        paginated.push(filtered[i]);
+      paginated.push(filtered[i]);
     }
   }
 
@@ -94,7 +90,7 @@ export default function ProductList() {
         {/* CAMPO DE FILTRO */}
         <input
           type="text"
-          placeholder="Filtrar por ID, nombre o categoría"
+          placeholder="Filtrar por ID o nombre"
           value={filter}
           onChange={e => { 
               setFilter(e.target.value); 
@@ -103,8 +99,11 @@ export default function ProductList() {
           style={{ marginBottom: "1rem", width: "100%", padding: "10px", boxSizing: "border-box" }}
         />
         
-        <button style={{ marginBottom: "1rem", padding: "10px", cursor: "pointer", background: "#007bff", color: "white", border: "none", borderRadius: "4px" }} onClick={() => navigate("/NewProduct")}>
-            Registrar nuevo producto
+        <button 
+          style={{ marginBottom: "1rem", padding: "10px", cursor: "pointer", background: "#007bff", color: "white", border: "none", borderRadius: "4px" }} 
+          onClick={() => navigate("/NewProduct")}
+        >
+          Registrar nuevo producto
         </button>
 
         {loading ? (
@@ -116,7 +115,6 @@ export default function ProductList() {
                 <tr style={{ background: "#f7f7f7", textAlign: "left" }}>
                     <th style={{ padding: "10px" }}>ID</th>
                     <th style={{ padding: "10px" }}>Nombre</th>
-                    <th style={{ padding: "10px" }}>Categoría</th>
                     <th style={{ padding: "10px" }}>Estado</th>
                     <th style={{ padding: "10px" }}>Acciones</th>
                 </tr>
@@ -126,10 +124,11 @@ export default function ProductList() {
                     <tr key={p.id_producto} style={{ background: p.activo ? "#fff" : "#fff5f5", borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: "10px" }}>{p.id_producto}</td>
                     <td style={{ padding: "10px" }}>{p.nombre}</td>
-                    <td style={{ padding: "10px" }}>{p.categoria?.nombre || "Sin categoría"}</td>
+                    
                     <td style={{ padding: "10px", fontWeight: "bold", color: p.activo ? "green" : "red" }}>
                         {p.activo ? "Activo" : "Desactivado"}
                     </td>
+
                     <td style={{ padding: "10px" }}>
                         <button 
                             onClick={() => navigate("/ProductDetail/"+p.id_producto)} 
@@ -139,17 +138,17 @@ export default function ProductList() {
                         </button>
                         
                         {p.activo ? (
-                        <button 
-                            style={{ background: "#dc3545", color: "#fff", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }} 
-                            onClick={() => toggleProductStatus(p.id_producto, true)}
-                        >
+                            <button 
+                                style={{ background: "#dc3545", color: "#fff", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }} 
+                                onClick={() => toggleProductStatus(p.id_producto, true)}
+                            >
                                 Desactivar
                             </button>
                         ) : (
-                        <button 
-                            style={{ background: "#28a745", color: "#fff", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }} 
-                            onClick={() => toggleProductStatus(p.id_producto, false)}
-                        >
+                            <button 
+                                style={{ background: "#28a745", color: "#fff", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }} 
+                                onClick={() => toggleProductStatus(p.id_producto, false)}
+                            >
                                 Activar
                             </button>
                         )}
