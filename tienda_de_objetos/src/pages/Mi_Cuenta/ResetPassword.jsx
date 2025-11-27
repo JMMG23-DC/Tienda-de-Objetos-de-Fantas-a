@@ -9,7 +9,9 @@ export const ResetPassword = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const id_usuario = localStorage.getItem("usuario_id");
+  // Obtener ID desde la URL: ?id=123
+  const query = new URLSearchParams(window.location.search);
+  const id_usuario = query.get("id");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +39,7 @@ export const ResetPassword = () => {
 
       if (!response.ok) throw new Error(data.error || "No se pudo actualizar la contraseña");
 
-      setMessage(data.message);
+      setMessage("Contraseña actualizada correctamente");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {

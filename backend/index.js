@@ -669,18 +669,21 @@ app.post("/api/password-reset", async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(404).json({ error: "Correo no registrado." });
 
-    // Enviar correo al usuario con el link
-    const resetUrl = `http://3.131.85.192:5173/ResetPassword`; 
+    // Enviar correo con enlace que contiene el ID
+    const resetUrl = `http://3.131.85.192:5173/ResetPassword?id=${user.user_id}`;
+
     await transporter.sendMail({
       from: '"Soporte" <20200812@aloe.ulima.edu.pe>',
       to: email,
       subject: "Recuperación de contraseña",
-      html: `<p>Hola ${user.nombre}, haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-             <a href="${resetUrl}">Restablecer contraseña</a>`
+      html: `
+        <p>Hola ${user.nombre}, haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <a href="${resetUrl}">Restablecer contraseña</a>
+      `
     });
 
-    // Retornar id_usuario para frontend
-    res.json({ message: "Correo enviado", id_usuario: user.user_id });
+    res.json({ message: "Correo enviado correctamente" });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error interno del servidor." });
@@ -693,15 +696,17 @@ app.put("/change-passwordd", async (req, res) => {
 
   try {
     const user = await User.findByPk(id_usuario);
-    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado." });
 
-    user.contrasena = newPassword; 
+    // Actualizar contraseña
+    user.contrasena = newPassword;
     await user.save();
 
     res.json({ message: "Contraseña actualizada correctamente" });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    res.status(500).json({ error: "Error interno del servidor." });
   }
 });
 
